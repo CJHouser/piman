@@ -7,10 +7,14 @@ from tcp import tcp
 from tftp import tftp
 from utility import power_cycle
 
+import socket
+
+s=socket.gethostname()
+
 data_dir = "./install/boot"
 tftp_port = 69
 tcp_port = 3333
-ip = "172.30.3.1"
+ip = socket.gethostbyname(s)
 subnet_mask = "255.255.255.0"
 mac_ip_file = "hosts.csv"
 
