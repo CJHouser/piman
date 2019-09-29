@@ -9,8 +9,7 @@ from utility import power_cycle
 
 import socket
 
-s=socket.gethostname()
-
+s = socket.gethostname()
 data_dir = "./install/boot"
 tftp_port = 69
 tcp_port = 3333
