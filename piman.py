@@ -10,7 +10,7 @@ from utility import power_cycle
 import socket
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(('4.2.2.2'), 0)
+s.connect(('4.2.2.2', 0))
 data_dir = "./install/boot"
 tftp_port = 69
 tcp_port = 3333
