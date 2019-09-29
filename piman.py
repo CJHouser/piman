@@ -9,11 +9,12 @@ from utility import power_cycle
 
 import socket
 
-s = socket.gethostname()
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(('4.2.2.2'), 0)
 data_dir = "./install/boot"
 tftp_port = 69
 tcp_port = 3333
-ip = socket.gethostbyname(s)
+ip = s.getsockname()[0]
 subnet_mask = "255.255.255.0"
 mac_ip_file = "hosts.csv"
 
