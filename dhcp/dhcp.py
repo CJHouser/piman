@@ -457,13 +457,14 @@ class DHCPServer(object):
     def update(self, timeout = 0):
         try:
             reads = select.select([self.socket], [], [], timeout)[0]
+            print(reads)
         except ValueError:
             # ValueError: file descriptor cannot be a negative integer (-1)
             return
         for socket in reads:
             try:
                 packet = ReadBootProtocolPacket(*socket.recvfrom(4096))
-                print(packet)
+                # print(packet)
             except OSError:
                 # OSError: [WinError 10038] An operation was attempted on something that is not a socket
                 pass
