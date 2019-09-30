@@ -457,7 +457,6 @@ class DHCPServer(object):
     def update(self, timeout = 0):
         try:
             reads = select.select([self.socket], [], [], timeout)[0]
-            print(reads)
         except ValueError:
             # ValueError: file descriptor cannot be a negative integer (-1)
             return
