@@ -463,7 +463,7 @@ class DHCPServer(object):
         for socket in reads:
             try:
                 packet = ReadBootProtocolPacket(*socket.recvfrom(4096))
-                # print(packet)
+                print(packet)
             except OSError:
                 # OSError: [WinError 10038] An operation was attempted on something that is not a socket
                 pass
@@ -546,14 +546,12 @@ class DHCPServer(object):
 
     def run(self):
         while not self.closed:
-            print("self is not closed")
             try:
                 self.update(1)
             except KeyboardInterrupt:
                 break
             except:
                 traceback.print_exc()
-        print("self is closed.")
 
     def run_in_thread(self):
         thread = threading.Thread(target = self.run)
