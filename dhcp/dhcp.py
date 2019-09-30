@@ -546,12 +546,14 @@ class DHCPServer(object):
 
     def run(self):
         while not self.closed:
+            print("self is not closed")
             try:
                 self.update(1)
             except KeyboardInterrupt:
                 break
             except:
                 traceback.print_exc()
+        print("self is closed.")
 
     def run_in_thread(self):
         thread = threading.Thread(target = self.run)

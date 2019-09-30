@@ -213,7 +213,6 @@ class TFTPServer:
                 error_message = b"illegal operation specified\0"
                 packet = error_opcode + error_code + error_message
                 self.server_socket.sendto(packet, addr)
-        print("IT'S NOT TRUE..")
 
     def join(self):
         self.tftp_thread.join()
