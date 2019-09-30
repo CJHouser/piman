@@ -35,7 +35,7 @@ class WriteBootProtocolPacket(object):
     
     vendor_class_identifier = "PXEClient"
     boot_file_name = "bootcode.bin"
-    router = '172.30.3.1'
+    router = '172.30.1.1'
     client_mac_address = None
     magic_cookie = '99.130.83.99'
 
