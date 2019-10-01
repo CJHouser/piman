@@ -584,7 +584,7 @@ def do_dhcp(ip, subnet_mask, mac_ip_file):
     #configuration.router #+= ['192.168.0.1']
     configuration.ip_address_lease_time = 1296000
     server = DHCPServer(configuration)
-    server.get_ip_address()
+    server.get_ip_address(ReadBootProtocolPacket(self.to_bytes()))
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
     print("DHCP server is running...")
