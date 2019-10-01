@@ -186,6 +186,7 @@ class Transaction(object):
         for known_host in self.server.hosts.get():
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
+
     
         if should_send_offer:
             self.send_offer(discovery)
@@ -583,6 +584,7 @@ def do_dhcp(ip, subnet_mask, mac_ip_file):
     #configuration.router #+= ['192.168.0.1']
     configuration.ip_address_lease_time = 1296000
     server = DHCPServer(configuration)
+    server.get_ip_address()
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
     print("DHCP server is running...")
