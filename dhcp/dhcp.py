@@ -243,7 +243,7 @@ class DHCPServerConfiguration(object):
     #network = '192.168.173.0'
     #broadcast_address = '255.255.255.255'
     #subnet_mask = '255.255.255.0'
-    router = '172.30.3.1'
+    router = '172.30.1.1'
     # 1 day is 86400
     ip_address_lease_time = 1296000# seconds
     domain_name_server = None # list of ips
@@ -584,7 +584,6 @@ def do_dhcp(ip, subnet_mask, mac_ip_file):
     #configuration.router #+= ['192.168.0.1']
     configuration.ip_address_lease_time = 1296000
     server = DHCPServer(configuration)
-    server.get_ip_address(ReadBootProtocolPacket(self.to_bytes()))
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
     print("DHCP server is running...")
