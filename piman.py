@@ -7,12 +7,14 @@ from tcp import tcp
 from tftp import tftp
 from utility import power_cycle
 
-data_dir = "./install/boot"
-tftp_port = 69
-tcp_port = 3333
-ip = "172.30.1.1"
-subnet_mask = "255.255.255.0"
-mac_ip_file = "hosts.csv"
+path = './config.txt'
+path_file = open(path, r)
+data_dir = path_file.readline()
+tftp_port = path_file.readline()
+tcp_port = path_file.readline()
+ip = path_file.readline()
+subnet_mask = path_file.readline()
+mac_ip_file = path_file.readline()
 
 def server(): 
     tftp_thread = Thread(target=tftp.do_tftpd, args=[data_dir, ip, tftp_port], name="tftpd")
