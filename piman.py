@@ -8,12 +8,12 @@ from tftp import tftp
 from utility import power_cycle
 
 file = open('./config.txt', 'r')
-data_dir = file.readline()
-tftp_port = int(file.readline())
-tcp_port = int(file.readline())
-ip = file.readline()
-subnet_mask = file.readline()
-mac_ip_file = file.readline()
+data_dir = file.readline().rstrip()
+tftp_port = int(file.readline()).rstrip()
+tcp_port = int(file.readline()).rstrip()
+ip = file.readline().rstrip()
+subnet_mask = file.readline().rstrip()
+mac_ip_file = file.readline().rstrip()
 file.close()
 
 def server(): 
