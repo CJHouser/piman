@@ -10,8 +10,8 @@ from utility import power_cycle
 path = './config.txt'
 path_file = open(path, 'r')
 data_dir = path_file.readline()
-tftp_port = path_file.readline()
-tcp_port = path_file.readline()
+tftp_port = int(path_file.readline())
+tcp_port = int(path_file.readline())
 ip = path_file.readline()
 subnet_mask = path_file.readline()
 mac_ip_file = path_file.readline()
