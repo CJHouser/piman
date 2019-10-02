@@ -8,7 +8,7 @@ from tftp import tftp
 from utility import power_cycle
 
 path = './config.txt'
-path_file = open(path, r)
+path_file = open(path, 'r')
 data_dir = path_file.readline()
 tftp_port = path_file.readline()
 tcp_port = path_file.readline()
