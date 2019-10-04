@@ -18,7 +18,7 @@ def turn_off(port):
         setCmd(
             SnmpEngine(),
             CommunityData("private@3", mpModel=0),
-            UdpTransportTarget(("172.30.3.128", 161)),
+            UdpTransportTarget(("172.30.1.128", 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(2)
@@ -39,7 +39,7 @@ def turn_on(port):
         setCmd(
             SnmpEngine(),
             CommunityData("private@3", mpModel=0),
-            UdpTransportTarget(("172.30.3.128", 161)),
+            UdpTransportTarget(("172.30.1.128", 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(1)
