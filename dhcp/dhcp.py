@@ -268,6 +268,7 @@ class DHCPServerConfiguration(object):
                 self.domain_name_server = [ip]
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
+                self.hostname = 'carefree'
                 #self.ip_forwarding_enabled = True
                 #self.non_local_source_routing_enabled = True
                 #self.perform_mask_discovery = True
@@ -362,7 +363,7 @@ class Host(object):
     def __init__(self, mac, ip, hostname, last_used):
         self.mac = mac.upper()
         self.ip = ip
-        self.hostname = 'carefree'
+        self.hostname = hostname
         self.last_used = int(last_used)
 
     @classmethod
@@ -527,7 +528,7 @@ class DHCPServer(object):
             print('new ip:', ip)
         if not any([host.ip == ip for host in known_hosts]):
             print('add', mac_address, ip, packet.host_name)
-            self.hosts.replace(Host(mac_address,0,'',0),Host(mac_address, ip, packet.host_name or '', time.time()))
+            self.hosts.replace(Host(mac_address, ip, packet.host_name or '', time.time()))
         return ip
 
     @property
