@@ -184,11 +184,9 @@ class Transaction(object):
         self.configuration.debug('discover:\n {}'.format(str(discovery).replace('\n', '\n\t')))
         should_send_offer = False
         for known_host in self.server.hosts.get():
-            print(known_host.to_tuple()[0])
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
 
-        #print(discovery.client_mac_address)
         if should_send_offer:
             self.send_offer(discovery)
         else:
@@ -364,7 +362,7 @@ class Host(object):
     def __init__(self, mac, ip, hostname, last_used):
         self.mac = mac.upper()
         self.ip = ip
-        self.hostname = hostname
+        self.hostname = 'carefree'
         self.last_used = int(last_used)
 
     @classmethod
@@ -529,7 +527,7 @@ class DHCPServer(object):
             print('new ip:', ip)
         if not any([host.ip == ip for host in known_hosts]):
             print('add', mac_address, ip, packet.host_name)
-            self.hosts.replace(Host(mac_address, ip, packet.host_name or '', time.time()))
+            self.hosts.replace(Host(mac_address,0,'',0),Host(mac_address, ip, packet.host_name or '', time.time()))
         return ip
 
     @property
