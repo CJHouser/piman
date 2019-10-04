@@ -245,7 +245,7 @@ class DHCPServerConfiguration(object):
     router = '172.30.1.1'
     # 1 day is 86400
     ip_address_lease_time = 1296000# seconds
-    domain_name_server = None # list of ips
+    domain_name_server = 'carefree' # list of ips
 
     host_file = 'hosts.csv'
 
@@ -268,7 +268,6 @@ class DHCPServerConfiguration(object):
                 self.domain_name_server = [ip]
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
-                self.hostname = 'carefree'
                 #self.ip_forwarding_enabled = True
                 #self.non_local_source_routing_enabled = True
                 #self.perform_mask_discovery = True
