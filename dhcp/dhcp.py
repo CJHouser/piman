@@ -188,7 +188,7 @@ class Transaction(object):
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
 
-        //print(discovery.client_mac_address)
+        #print(discovery.client_mac_address)
         if should_send_offer:
             self.send_offer(discovery)
         else:
