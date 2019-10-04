@@ -245,7 +245,7 @@ class DHCPServerConfiguration(object):
     router = '172.30.1.1'
     # 1 day is 86400
     ip_address_lease_time = 1296000# seconds
-    domain_name_server = 'carefree' # list of ips
+    domain_name_server = None # list of ips
 
     host_file = 'hosts.csv'
 
