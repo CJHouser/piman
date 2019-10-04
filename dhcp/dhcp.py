@@ -184,10 +184,11 @@ class Transaction(object):
         self.configuration.debug('discover:\n {}'.format(str(discovery).replace('\n', '\n\t')))
         should_send_offer = False
         for known_host in self.server.hosts.get():
+            print(known_host.to_tuple()[0])
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
 
-        print(discovery.client_mac_address)
+        //print(discovery.client_mac_address)
         if should_send_offer:
             self.send_offer(discovery)
         else:
