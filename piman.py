@@ -35,7 +35,7 @@ def server():
 def restart(ports):
 	port = ports.split(",")
     for p in port:
-        power_cycle.power_cycle(p)
+    	power_cycle.power_cycle(p)
 
 
 def reinstall(port):
