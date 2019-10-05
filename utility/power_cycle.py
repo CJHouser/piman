@@ -43,7 +43,7 @@ def turn_on(port):
     errorIndication, errorStatus, errorIndex, varBinds = next(
         setCmd(
             SnmpEngine(),
-            CommunityData("private@3", mpModel=0),
+            CommunityData(data, mpModel=0),
             UdpTransportTarget((switch_IP, 161)),
             ContextData(),
             ObjectType(
