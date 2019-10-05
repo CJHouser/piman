@@ -1,5 +1,6 @@
 import click
 import piman
+from utility import power_cycle
 
 @click.group()
 def cli():
