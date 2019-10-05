@@ -30,10 +30,12 @@ def server():
     dhcp_thread.join()
     tcp_thread.join()
 
-
+# Looks for a "," delimiter and cycles through the ports
+# ex) 1,2,3,4,5,6,7,8,9,10 will cycle through ports 1-10
 def restart(ports):
-    for port in ports:
-        power_cycle.power_cycle(port)
+	port = ports.split(",")
+    for p in port:
+        power_cycle.power_cycle(p)
 
 
 def reinstall(port):
