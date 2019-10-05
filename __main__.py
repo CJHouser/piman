@@ -23,7 +23,7 @@ def restart(id):
 def reinstall(id):
     piman.reinstall(id)
 
-@cli.command()
+@cli.group()
 def power_cycle():
     power_cycle.power_cycle(10)
     server()
