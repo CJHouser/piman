@@ -34,7 +34,7 @@ def server():
 # ex) 1,2,3,4,5,6,7,8,9,10 will cycle through ports 1-10
 def restart(ports):
 	port = ports.split(",")
-    for p in port:
+	for p in port:
     	power_cycle.power_cycle(p)
 
 
