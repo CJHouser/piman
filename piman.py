@@ -35,12 +35,12 @@ def server():
 def restart(ports):
 	port = ports.split(",")
 	for p in port:
-    	power_cycle.power_cycle(p)
+		power_cycle.power_cycle(p)
 
 
 def reinstall(port):
     with open("/tcp/reinstall.txt", "w") as f:
-        f.write("172.30.1.{}".format(port))
+    	f.write("172.30.1.{}".format(port))
     
     power_cycle.power_cycle(port)
 
