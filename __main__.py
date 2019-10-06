@@ -25,7 +25,6 @@ def reinstall(id):
 @cli.command()
 def power_cycle():
     piman.power_cycle(10)
-    server()
 
 
 if __name__ == "__main__":
