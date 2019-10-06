@@ -95,7 +95,7 @@ class TCPServer:
                     print("TCT - uninstalled, sending format")
                     client_socket.send(SEND_FORMAT) #  this line of code is suggested by team fire
                 elif req == RECV_IS_INSTALLED:
-                    reinstall_list = [line.rstrip('\n') for line in open('./tcp/reinstall.txt', 'r')]
+                    reinstall_list = [line.rstrip('\n') for line in open('./reinstall.txt', 'r')]
                     if client_addr[0] in reinstall_list:
                         print("TCP - need to reinstall, sending format")
                         client_socket.send(SEND_FORMAT)
