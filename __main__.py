@@ -8,7 +8,8 @@ def cli():
 
 
 @cli.command()
-def server    piman.server()
+def server():    
+	piman.server()
 
 
 @cli.command()
