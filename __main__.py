@@ -7,8 +7,8 @@ def cli():
     pass
 
 
-@cli.command()
-def server    piman.server()
+#@cli.command()
+#def server    piman.server()
 
 
 @cli.command()
@@ -25,8 +25,7 @@ def reinstall(id):
 @cli.command()
 def power_cycle():
     piman.power_cycle(10)
-    server()
-
+    #server()
 
 if __name__ == "__main__":
     cli()
