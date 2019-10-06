@@ -44,8 +44,9 @@ def reinstall(port):
     
     power_cycle.power_cycle(port)
 
-def power_cycle():
-	power_cycle.power_cycle(10)
+def power_cycle(ports):
+	power_cycle.power_cycle(ports)
+	server()
 
 
 def exit_piman():
