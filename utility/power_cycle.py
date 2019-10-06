@@ -13,9 +13,10 @@ data = file.readline().rstrip()
 file.close()
 
 def power_cycle(port):
-    turn_off(port)
-    time.sleep(1)
-    turn_on(port)
+    for i in range(port):
+        turn_off(i)
+        time.sleep(1)
+        turn_on(i)
 
 def turn_off(port):
     print("Power_Cycle - Setting pi at port {} to OFF".format(port))
