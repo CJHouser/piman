@@ -3,7 +3,6 @@
 from socket import AF_INET, SOCK_DGRAM, socket
 from struct import unpack, pack
 from threading import Thread
-from zipfile import ZipFile
 
 import os
 
@@ -39,11 +38,11 @@ class TFTPServer:
     def res_open(self, name):
         zipfile = os.path.dirname(os.path.dirname(__file__))
         fd = None
+        file_location = zipfile + "/install/boot/"
         try:
-            with ZipFile(zipfile) as z:
-                fd = z.open("install/boot/" + name)
+            fd = open(file_location + name, encoding = "latin=1")
         except KeyError:
-            pass # we'll try looking in the filesystem next
+            pass  # we'll try looking in the filesystem next
         if not fd:
             return open("{}/{}".format(self.data_dir, name), "rb")
         return fd
@@ -60,6 +59,29 @@ class TFTPServer:
         print("serving files from {} on port {}".format(self.data_dir, self.tftp_port))
         self.tftp_thread = Thread(target=self.__process_requests, name="tftpd")
         self.tftp_thread.start()
+
+    """
+    Handles creating an ephemeral port for sending an entire file to the 
+    requesting client
+    """
+    def send_file(self, address, file_path):
+        # Create new socket
+        sending_socket = socket(AF_INET, SOCK_DGRAM)
+        # Pick a random open port to use for sending data
+        sending_socket.bind(('', 0))
+        print("connecting to {}:{}".format(self.connection_address, sending_socket.getsockname()[1]))
+        # Open file to read data from
+        transfer_file = self.res_open(file_path.decode())
+        data = transfer_file.read()
+        try:
+            # Send entire stream of data on socket
+            sending_socket.sendto(data, address)
+        except:
+            # So that we can close the connection in case something
+            # happens to the client
+            pass
+        # Close socket connection when done
+        sending_socket.close()
 
     """
     This code is responsible for handling requests (both valid and invalid) as well as ensuring data is transferred 
@@ -92,32 +114,8 @@ class TFTPServer:
                 transfer_opcode = pack("!H", TFTPServer.DATA_OPCODE)
 
                 try:
-                    # opens the specified file in a read only binary form
-                    transfer_file = self.res_open(
-                        strings_in_RRQ[0].decode()
-                    )
-
-                    # block_number will remain an integer for file seeking purposes
-                    block_number = addr_dict[addr][1]
-
-                    # navigate to the corresponding 512-byte window in the transfer file
-                    transfer_file.seek(512 * block_number)
-
-                    # read up to the appropriate 512 bytes of data
-                    data = transfer_file.read(512)
-
-                    if data:
-                        block_number += 1
-                        addr_dict[addr][1] = block_number
-
-                        # the transfer block number is a binary string representation of the block number
-                        transfer_block_number = pack("!H", block_number)
-
-                        # construct a data packet
-                        packet = transfer_opcode + transfer_block_number + data
-
-                        # send the initial data packet
-                        self.server_socket.sendto(packet, addr)
+                    send_file_thread = Thread(target=self.send_file, args=[addr, strings_in_RRQ[0]])
+                    send_file_thread.start()
                         
                 except FileNotFoundError:
                     # send an error packet to the requesting host
