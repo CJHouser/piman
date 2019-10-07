@@ -7,12 +7,14 @@ from tcp import tcp
 from tftp import tftp
 from utility import power_cycle
 
-data_dir = "./install/boot"
-tftp_port = 69
-tcp_port = 3333
-ip = "172.30.3.1"
-subnet_mask = "255.255.255.0"
-mac_ip_file = "hosts.csv"
+file = open('./config.txt', 'r')
+data_dir = file.readline().rstrip()
+tftp_port = int(file.readline())
+tcp_port = int(file.readline())
+ip = file.readline().rstrip()
+subnet_mask = file.readline().rstrip()
+mac_ip_file = file.readline().rstrip()
+file.close()
 
 def server(): 
     tftp_thread = Thread(target=tftp.do_tftpd, args=[data_dir, ip, tftp_port], name="tftpd")
@@ -28,15 +30,17 @@ def server():
     dhcp_thread.join()
     tcp_thread.join()
 
-
+# Looks for a "," delimiter and cycles through the ports
+# ex) 1,2,3,4,5,6,7,8,9,10 will cycle through ports 1-10
 def restart(ports):
-    for port in ports:
-        power_cycle.power_cycle(port)
+	port = ports.split(",")
+	for p in port:
+		power_cycle.power_cycle(p)
 
 
 def reinstall(port):
-    with open("/tcp/reinstall.txt", "w") as f:
-        f.write("172.30.3.{}".format(port))
+    with open("./reinstall.txt", "w") as f:
+    	f.write("172.30.1.{}".format(port))
     
     power_cycle.power_cycle(port)
 

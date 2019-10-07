@@ -1,5 +1,6 @@
 import click
 import piman
+from utility import power_cycle
 
 @click.group()
 def cli():
@@ -7,8 +8,8 @@ def cli():
 
 
 @cli.command()
-def server():
-    piman.server()
+def server():    
+	piman.server()
 
 
 @cli.command()

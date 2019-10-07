@@ -7,6 +7,11 @@ setting to 1 will turn ON the port, setting to 2 will turn OFF the port
 from pysnmp.hlapi import *  # PySNMP library
 import time  # For sleeping
 
+file = open('./utility/power_config.txt', 'r')
+switch_IP = file.readline().rstrip()
+data = file.readline().rstrip()
+file.close()
+
 def power_cycle(port):
     turn_off(port)
     time.sleep(1)
@@ -17,8 +22,8 @@ def turn_off(port):
     errorIndication, errorStatus, errorIndex, varBinds = next(
         setCmd(
             SnmpEngine(),
-            CommunityData("private@3", mpModel=0),
-            UdpTransportTarget(("172.30.3.128", 161)),
+            CommunityData(data, mpModel=0),
+            UdpTransportTarget((switch_IP, 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(2)
@@ -38,8 +43,8 @@ def turn_on(port):
     errorIndication, errorStatus, errorIndex, varBinds = next(
         setCmd(
             SnmpEngine(),
-            CommunityData("private@3", mpModel=0),
-            UdpTransportTarget(("172.30.3.128", 161)),
+            CommunityData(data, mpModel=0),
+            UdpTransportTarget((switch_IP, 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(1)

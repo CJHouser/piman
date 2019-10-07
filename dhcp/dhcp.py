@@ -35,7 +35,7 @@ class WriteBootProtocolPacket(object):
     
     vendor_class_identifier = "PXEClient"
     boot_file_name = "bootcode.bin"
-    router = '172.30.3.1'
+    router = '172.30.1.1'
     client_mac_address = None
     magic_cookie = '99.130.83.99'
 
@@ -186,7 +186,7 @@ class Transaction(object):
         for known_host in self.server.hosts.get():
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
-    
+
         if should_send_offer:
             self.send_offer(discovery)
         else:
@@ -242,7 +242,7 @@ class DHCPServerConfiguration(object):
     #network = '192.168.173.0'
     #broadcast_address = '255.255.255.255'
     #subnet_mask = '255.255.255.0'
-    router = '172.30.3.1'
+    router = '172.30.1.1'
     # 1 day is 86400
     ip_address_lease_time = 1296000# seconds
     domain_name_server = None # list of ips
