@@ -63,6 +63,7 @@ def find_port(mac_addr, switch_ip, community):
         )
     else:
         result = varBinds[0].prettyPrint()
+        print(result)
         return result.split(" = ")[1]
 
 
