@@ -20,7 +20,7 @@ def turn_off(switch_port, switch_ip, community):
         setCmd(
             SnmpEngine(),
             CommunityData(community, mpModel=0),
-            UdpTransswitch_portTarget((switch_ip, 161)),
+            UdpTransportTarget((switch_ip, 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(switch_port)), Integer(2)
@@ -41,7 +41,7 @@ def turn_on(switch_port, switch_ip, community):
         setCmd(
             SnmpEngine(),
             CommunityData(community, mpModel=0),
-            UdpTransswitch_portTarget((switch_ip, 161)),
+            UdpTransportTarget((switch_ip, 161)),
             ContextData(),
             ObjectType(
                 ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(switch_port)), Integer(1)
@@ -53,4 +53,4 @@ def turn_on(switch_port, switch_ip, community):
     elif errorStatus:
         print("power_cycle - not found")
     else:
-        print("power_cycle - Set switch port {} to ON".format(port))
+        print("power_cycle - Set switch port {} to ON".format(switch_port))
