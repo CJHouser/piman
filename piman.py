@@ -33,9 +33,8 @@ def server():
     tcp_thread.join()
 
 
-def restart(switch_ports):
-    for switch_port in switch_ports:
-    	power_cycle.power_cycle(switch_port, switch_ip, community)
+def restart(switch_port):
+    power_cycle.power_cycle(switch_port, switch_ip, community)
 
 # this function assumes that switch port N maps to <network_ip>.N (ex: 172.30.1.N)
 def reinstall(switch_port):
