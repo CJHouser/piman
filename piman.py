@@ -38,14 +38,12 @@ def restart(switch_port):
 
 # this function assumes that switch port N maps to <network_ip>.N (ex: 172.30.1.N)
 def reinstall(switch_port):
-    import socket
+    import socket, struct
     sm = struct.unpack('>I', socket.inet_aton(subnet_mask))[0]
     ip = struct.unpack('>I', socket.inet_aton(host_ip))[0]
-    pt = struct.unpack('>I', socket.inet_aton('0.0.0.{}'.format(switch_port)))
-    pi_ip = (ip & subnet_mask) | pt
-    print(pi_ip)
+    pt = struct.unpack('>I', socket.inet_aton('0.0.0.{}'.format(switch_port)))[0]
+    pi_ip = (ip & sm) | pt
     pi_ip = socket.inet_ntoa(struct.pack('>I', pi_ip))
     with open("./reinstall.txt", "w") as f:
     	f.write(pi_ip) 
-    return
     power_cycle.power_cycle(switch_port, switch_ip, community)
