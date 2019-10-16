@@ -14,6 +14,8 @@ tcp_port    = int(config_file.readline())
 ip          = config_file.readline().rstrip()
 subnet_mask = config_file.readline().rstrip()
 mac_ip_file = config_file.readline().rstrip()
+switch_addr = config_file.readline().rstrip()
+community   = config_file.readline().rstrip()
 config_file.close()
 
 def server(): 

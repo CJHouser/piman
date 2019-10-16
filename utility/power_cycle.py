@@ -4,59 +4,53 @@ snmp relevent OID = 1.3.6.1.2.1.105.1.1.1.3.1.x
 where x = the port number to modify
 setting to 1 will turn ON the port, setting to 2 will turn OFF the port
 """
+import time # for sleep
 from pysnmp.hlapi import *  # PySNMP library
-import time  # For sleeping
 
-file = open('./utility/power_config.txt', 'r')
-switch_IP = file.readline().rstrip()
-data = file.readline().rstrip()
-file.close()
 
-def power_cycle(port):
-    turn_off(port)
+def power_cycle(switch_port, switch_ip, community):
+    turn_off(switch_port, switch_ip, community)
     time.sleep(1)
-    turn_on(port)
+    turn_on(switch_port, switch_ip, community)
 
-def turn_off(port):
-    print("Power_Cycle - Setting pi at port {} to OFF".format(port))
+
+def turn_off(switch_port, switch_ip, community):
+    print("power_cycle - Setting switch port {} to OFF".format(switch_port))
     errorIndication, errorStatus, errorIndex, varBinds = next(
         setCmd(
             SnmpEngine(),
-            CommunityData(data, mpModel=0),
-            UdpTransportTarget((switch_IP, 161)),
+            CommunityData(community, mpModel=0),
+            UdpTransswitch_portTarget((switch_ip, 161)),
             ContextData(),
             ObjectType(
-                ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(2)
-            ),  # value of 2 turns the port OFF
+                ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(switch_port)), Integer(2)
+            ),  # value of 2 turns the switch_port OFF
         )
     )
     if errorIndication:
         print(errorIndication)
     elif errorStatus:
-        print("Power_Cycle - not found")
+        print("power_cycle - not found")
     else:
-        print("Power_Cycle - Set pi at port {} to OFF".format(port))
+        print("power_cycle - Set switch port {} to OFF".format(switch_port))
 
 
-def turn_on(port):
-    print("Power_Cycle - Setting pi at port {} to ON".format(port))
+def turn_on(switch_port, switch_ip, community):
+    print("power_cycle - Setting switch switch port {} to ON".format(switch_port))
     errorIndication, errorStatus, errorIndex, varBinds = next(
         setCmd(
             SnmpEngine(),
-            CommunityData(data, mpModel=0),
-            UdpTransportTarget((switch_IP, 161)),
+            CommunityData(community, mpModel=0),
+            UdpTransswitch_portTarget((switch_ip, 161)),
             ContextData(),
             ObjectType(
-                ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(port)), Integer(1)
-            ),  # value of 1 turns the port ON
+                ObjectIdentity("1.3.6.1.2.1.105.1.1.1.3.1." + str(switch_port)), Integer(1)
+            ),  # value of 1 turns the switch_port ON
         )
     )
     if errorIndication:
         print(errorIndication)
     elif errorStatus:
-        print("Power_Cycle - not found")
+        print("power_cycle - not found")
     else:
-        print("Power_Cycle - Set pi at port {} to ON".format(port))
-
-if __name__ == "__main__":
-    power_cycle(10)
+        print("power_cycle - Set switch port {} to ON".format(port))
