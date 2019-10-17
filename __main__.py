@@ -9,24 +9,19 @@ def cli():
 
 @cli.command()
 def server():    
-	piman.server()
+    piman.server()
 
 
 @cli.command()
-@click.argument('id')
-def restart(id):
-    piman.restart(id)
+@click.argument('switch_port', type=click.INT)
+def restart(switch_port):
+    piman.restart(switch_port)
 
 
 @cli.command()
-@click.argument('id')
-def reinstall(id):
-    piman.reinstall(id)
-
-@cli.command()
-def power_cycle():
-    power_cycle.power_cycle(10)
-    server()
+@click.argument('switch_port', type=click.INT)
+def reinstall(switch_port):
+    piman.reinstall(switch_port)
 
 
 if __name__ == "__main__":
