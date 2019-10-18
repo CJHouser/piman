@@ -1,7 +1,9 @@
 from threading import Thread
 from socket import AF_INET, SOCK_STREAM, socket
 from struct import unpack, pack
+from zipfile import ZipFile
 import traceback
+import os
 
 # messages recieved from PI
 
@@ -118,11 +120,17 @@ class TCPServer:
         This function serves the file socket's coming requests.
         """
         print("TCP - started file_transferring")
+        zipfile = os.path.dirname(os.path.dirname(__file__))
         try:
             # opens the specified file in a read only binary form
-            transfer_file = open("{}/{}".format(self.data_dir, "rootfs.tgz"), "rb")
-            data = transfer_file.read()
-            print("TCP - read rootfs.tgz")
+            data = None
+            try:
+                with ZipFile(zipfile) as z:
+                    print('TCP - read rootfs')
+                    fd = z.open("install/boot/rootfs.tgz")
+                    data = fd.read()
+            except:
+                traceback.print_exc()
 
             if data:
                 # send the data

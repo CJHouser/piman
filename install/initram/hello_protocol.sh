@@ -114,13 +114,14 @@ do
         # Mounts the OS on /new_root and exits
         mounting
         exit 0
+	;;
     reinstall)
         mounting
         rm -rf /*
         unmount
         send "IS_UNINSTALLED" 
         break
-    ;;
+    	;;
     *)
         send "Sorry don't know how to do $req"
         ;;

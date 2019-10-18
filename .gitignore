@@ -48,3 +48,4 @@ __pycache__
 /releases
 /standalone/DHCPGui.exe
 build/
+install/boot/rootfs.tgz
