@@ -3,6 +3,7 @@
 from socket import AF_INET, SOCK_DGRAM, socket
 from struct import unpack, pack
 from threading import Thread
+from zipfile import ZipFile
 
 import os
 
@@ -38,9 +39,9 @@ class TFTPServer:
     def res_open(self, name):
         zipfile = os.path.dirname(os.path.dirname(__file__))
         fd = None
-        file_location = zipfile + "/install/boot/"
         try:
-            fd = open(file_location + name, encoding = "latin=1")
+            with ZipFile(zipfile) as z:
+                fd = z.open("install/boot/" + name)
         except KeyError:
             pass  # we'll try looking in the filesystem next
         if not fd:
@@ -114,8 +115,16 @@ class TFTPServer:
                 transfer_opcode = pack("!H", TFTPServer.DATA_OPCODE)
 
                 try:
-                    send_file_thread = Thread(target=self.send_file, args=[addr, strings_in_RRQ[0]])
-                    send_file_thread.start()
+                    transfer_file = self.res_open(strings_in_RRQ[0].decode())
+                    block_number = addr_dict[addr][1]
+                    transfer_file.seek(512 * block_number)
+                    data = transfer_file.read(512)
+                    if data:
+                        block_number +=1
+                        addr_dict[addr][1] = block_number
+                        transfer_block_number = pack("!H", block_number)
+                        packet = transfer_opcode + transfer_block_number + data
+                        self.server_socket.sendto(packet, addr)
                         
                 except FileNotFoundError:
                     # send an error packet to the requesting host
