@@ -19,9 +19,9 @@ def restart(switch_port):
 
 
 @cli.command()
-@click.argument('switch_port', type=click.INT)
-def reinstall(switch_port):
-    piman.reinstall(switch_port)
+@click.argument('ip')
+def reinstall(ip):
+    piman.reinstall(ip)
 
 
 if __name__ == "__main__":

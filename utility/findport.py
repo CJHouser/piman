@@ -24,15 +24,10 @@
 #      ```
 
 
-import click
 import sys
 from pysnmp.hlapi import *
 
 
-@click.command()
-@click.argument('mac_addr')
-@click.argument('switch_ip')
-@click.argument('community')
 def find_port(mac_addr, switch_ip, community):
     """
     source: http://snmplabs.com/pysnmp/quick-start.html#fetch-snmp-variable
@@ -63,7 +58,6 @@ def find_port(mac_addr, switch_ip, community):
         )
     else:
         result = varBinds[0].prettyPrint()
-        print(result)
         return result.split(" = ")[1]
 
 
