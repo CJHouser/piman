@@ -45,7 +45,7 @@ def reinstall(ip):
     mac = None
     with open(mac_ip_file, 'r') as fd:
         for line in fd:
-            if ip in line:
+            if ip == line.split(';')[1]:
                 mac = line.split(';')[0]
                 break
     if mac:
