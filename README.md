@@ -5,7 +5,7 @@ There are a few potholes to watch out for that can cause problems while working 
 
 * initram
     
-In the directory install/initram there are some files which are used by the Raspberry Pis to remote boot. The Pi's receive these files via a zip file called initramfs.gz. Any time a change is made to the files in install/initram, a new initramfs.gz will need to be created. This can be done using the script install/initram/create_initramfs.gz.sh. The zip file will be placed in /install/boot by the script.
+    In the directory install/initram there are some files which are used by the Raspberry Pis to remote boot. The Pi's receive these files via a zip file called initramfs.gz. Any time a change is made to the files in install/initram, a new initramfs.gz will need to be created. This can be done using the script install/initram/create_initramfs.gz.sh. The zip file will be placed in /install/boot by the script.
 
 * rootfs.tgz
     
@@ -28,12 +28,19 @@ In the directory install/initram there are some files which are used by the Rasp
     
     ```
     <Path to boot data>
+    
     <TFTP port>
+    
     <TCP port>
+    
     <IP address of the machine hosting piman>
+    
     <Subnet mask>
+    
     <Path to hosts.csv>
+    
     <IP address of the switch>
+    
     <SNMP community phrase>
     ```
 
