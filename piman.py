@@ -23,10 +23,10 @@ config_file.close()
 
 
 def server(): 
-    tftp_thread = Thread(target=tftp.do_tftpd, args=[data_dir, host_ip, tftp_port], name="tftpd")
+    tftp_thread = Thread(target=tftp.do_tftpd, args=[data_dir, tftp_port, host_ip], name="tftpd")
     tftp_thread.start()
 
-    dhcp_thread = Thread(target=dhcp.do_dhcp, args=[host_ip, subnet_mask, mac_ip_file], name="dhcpd")
+    dhcp_thread = Thread(target=dhcp.do_dhcp, args=[mac_ip_file, subnet_mask, host_ip], name="dhcpd")
     dhcp_thread.start()
 
     tcp_thread = Thread(target=tcp.do_tcp, args=[data_dir, tcp_port, host_ip], name="tcp")

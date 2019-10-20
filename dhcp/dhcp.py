@@ -190,7 +190,8 @@ class Transaction(object):
         if should_send_offer:
             self.send_offer(discovery)
         else:
-            print("unknown mac_address. will not assign ip")
+            print('DHCP - unknown MAC: {}. skip IP assignment'
+                    .format(discovery.client_mac_address))
 
     def send_offer(self, discovery):
         # https://tools.ietf.org/html/rfc2131
@@ -506,11 +507,11 @@ class DHCPServer(object):
             for host in known_hosts:
                 if self.is_valid_client_address(host.ip):
                     ip = host.ip
-            print('known ip:', ip)
+            print('DHCP - known ip:', ip)
         if ip is None and self.is_valid_client_address(requested_ip_address):
             # 2. choose valid requested ip address
             ip = requested_ip_address
-            print('valid ip:', ip)
+            print('DHCP - valid ip:', ip)
         if ip is None:
             # 3. choose new, free ip address
             chosen = False
@@ -524,9 +525,9 @@ class DHCPServer(object):
                 network_hosts.sort(key = lambda host: host.last_used)
                 ip = network_hosts[0].ip
                 assert self.is_valid_client_address(ip)
-            print('new ip:', ip)
+            print('DHCP - new ip:', ip)
         if not any([host.ip == ip for host in known_hosts]):
-            print('add', mac_address, ip, packet.host_name)
+            print('DHCP - add {} {} {}'.format(mac_address, ip, packet.host_name))
             self.hosts.replace(Host(mac_address, ip, packet.host_name or '', time.time()))
         return ip
 
@@ -540,7 +541,7 @@ class DHCPServer(object):
             data = packet.to_bytes()
             self.broadcast_socket.sendto(data, ('255.255.255.255', 68))
         except:
-            print('error broadcasting')
+            print('DHCP - error broadcasting')
             traceback.print_exc()
 
 
@@ -575,8 +576,8 @@ Since the entry point of the DHCP + PXE server is via piman, we no longer need t
 The entry point for the dhcp code is the do_dhcp function, which will spin up a server with the given IP, subnet_mask,
 and file containing a mapping of MAC addresses to static IPs.
 """
-def do_dhcp(ip, subnet_mask, mac_ip_file):
-    configuration = DHCPServerConfiguration(ip, subnet_mask)
+def do_dhcp(mac_ip_file, subnet_mask, host_ip):
+    configuration = DHCPServerConfiguration(host_ip, subnet_mask)
     configuration.host_file = mac_ip_file
     #configuration.debug = print
     #configuration.adjust_if_this_computer_is_a_router()
@@ -585,8 +586,5 @@ def do_dhcp(ip, subnet_mask, mac_ip_file):
     server = DHCPServer(configuration)
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
-    print("DHCP server is running...")
+    print("DHCP - starting")
     server.run()
-    
-if __name__ == '__main__':
-    do_dhcp()

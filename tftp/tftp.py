@@ -1,76 +1,74 @@
-# import click
-
 from socket import AF_INET, SOCK_DGRAM, socket
 from struct import unpack, pack
 from threading import Thread
 from zipfile import ZipFile
-
 import os
 
-"""
-This code is modified following Prof. Reed suggestion
-"""
 
-"""
-The TFTPServer class encapsulates the methods required for running a simple TFTP server that handles only read requests
-The server is initialized with a data directory, a port, as well as a connection address
-
-The default data directory is the home directory
-The default port is 69 (note: sudo must be used if using port 69)
-The default connection address is that of the local machine.
-"""
+# TFTP data packets consist of a 2-byte opcode, 2-byte block number, and up
+#   to 512-byte data portion
+# Although we could minimize since our server is solely getting RRQ and Ack
+#   packets we could have set the buffer to a more optimized value (i.e.
+#   filenames on Mac OSX can have up to 256 characters so we could limit
+#   the buffer to the max size of a RRQ packet) but for better practice
+#   it's been set to the max data packet length in TFTP
 class TFTPServer:
     RRQ_OPCODE = 1
     DATA_OPCODE = 3
     ACK_OPCODE = 4
     ERROR_OPCODE = 5
-    # TFTP data packets consist of a 2-byte opcode, 2-byte block number, and up to 512-byte data portion
-    # Although we could minimize since our server is solely getting RRQ and Ack packets we could have set
-    # the buffer to a more optimized value (i.e. filenames on Mac OSX can have up to 256 characters so we
-    # could limit the buffer to the max size of a RRQ packet) but for better practice it's been set to the
-    # max data packet length in TFTP
     BUFFER_SIZE = 516
-
-    def __init__(self, data_dir, tftp_port, connection_address):
+    
+    
+    # The TFTPServer class encapsulates the methods required for running a read
+    #   only TFTP server
+    # data_dir  :   path to boot files
+    # tftp_port :   port that TFTP service listens on
+    # host_ip   :   IP address of the machine hosting piman
+    def __init__(self, data_dir, tftp_port, host_ip):
         self.data_dir = data_dir
         self.tftp_port = tftp_port
-        self.connection_address = connection_address
+        self.host_ip = host_ip
 
+
+    # Starts the TfTP service thread
+    def start(self):
+        self.server_socket = socket(AF_INET, SOCK_DGRAM)
+        print('TFTP - connecting to {}:{}'.format(self.host_ip, self.tftp_port))
+        self.server_socket.bind((self.host_ip, self.tftp_port))
+        print('TFTP - serving files from {} on port {}'.format(self.data_dir, self.tftp_port))
+        self.tftp_thread = Thread(target=self.__process_requests, name="tftpd")
+        self.tftp_thread.start()
+
+
+    # Serves data from piman.pyz
     def res_open(self, name):
         zipfile = os.path.dirname(os.path.dirname(__file__))
         fd = None
         try:
             with ZipFile(zipfile) as z:
-                fd = z.open("install/boot/" + name)
+                fd = z.open("{}/{}".format(self.data_dir, name))
         except KeyError:
-            pass  # we'll try looking in the filesystem next
-        if not fd:
-            return open("{}/{}".format(self.data_dir, name), "rb")
+            # The file was not found in the piman.pyz. It is a
+            #   mystery what this returns, but it is assumed that it causes
+            #   an error in the code that in turn causes a loop iteration
+            #   to be skipped, which allows a new file to be requested.
+            # This is a janky solution that is issue prone.
+            #   It is functional, but the logic should be changed to
+            #   handle this case properly.
+            # A possible fix would be to allow None to be returned, then check
+            #   for None whenever running this function.
+            return open('', 'rb')
         return fd
 
 
-    """
-    Begins running the server thread
-    """
-    def start(self):
-        self.server_socket = socket(AF_INET, SOCK_DGRAM)
-        # We can specify a specific address when running the server (defaults to '')
-        print("connecting to {}:{}".format(self.connection_address, self.tftp_port))
-        self.server_socket.bind((self.connection_address, self.tftp_port))
-        print("serving files from {} on port {}".format(self.data_dir, self.tftp_port))
-        self.tftp_thread = Thread(target=self.__process_requests, name="tftpd")
-        self.tftp_thread.start()
-
-    """
-    Handles creating an ephemeral port for sending an entire file to the 
-    requesting client
-    """
+    # Send files to a Raspberry Pi using an ephemeral port
     def send_file(self, address, file_path):
         # Create new socket
         sending_socket = socket(AF_INET, SOCK_DGRAM)
         # Pick a random open port to use for sending data
         sending_socket.bind(('', 0))
-        print("connecting to {}:{}".format(self.connection_address, sending_socket.getsockname()[1]))
+        print("connecting to {}:{}".format(self.host_ip, sending_socket.getsockname()[1]))
         # Open file to read data from
         transfer_file = self.res_open(file_path.decode())
         data = transfer_file.read()
@@ -84,12 +82,10 @@ class TFTPServer:
         # Close socket connection when done
         sending_socket.close()
 
-    """
-    This code is responsible for handling requests (both valid and invalid) as well as ensuring data is transferred 
-    properly and reliably.
-    """
+    
+    # Handle valid and invalid requests and transfer data
     def __process_requests(self):
-        print("TFTP waiting for request")
+        print("TFTP - waiting for request")
         addr_dict = dict()
         # this while loop keeps our server running also accounting for ensuring the initial
         # data packet is retrieved by the host
@@ -108,7 +104,7 @@ class TFTPServer:
                 # because b'\0' is at the end of all strings split will always
                 # give us an extra empty string at the end, so skip it with [:-1]
                 strings_in_RRQ = pkt[2:].split(b"\0")[:-1]
-                print("got {} from {}".format(strings_in_RRQ, addr))
+                print("TFTP - got {} from {}".format(strings_in_RRQ, addr))
                 addr_dict[addr] = [strings_in_RRQ[0], 0, 0]
 
                 # data needed for our packet
@@ -225,37 +221,14 @@ class TFTPServer:
         self.tftp_thread.join()
 
 
-"""@click.command()
-@click.option(
-    "--data_dir",
-    default=".",
-    metavar="root_of_files_to_serve",
-    type=click.Path(exists=True, file_okay=False, resolve_path=True),
-    help="the directory to use as the root of the files being served",
-)
-@click.option(
-    "--tftp_port",
-    default=69,
-    metavar="UDP_listening_port",
-    help="the UDP port to listen for tftp client requests",
-)
-@click.option(
-    "--connection_address",
-    default="",
-    metavar="UDP_listening_address",
-    help="the address to listen on for request",
-)"""
-def do_tftpd(data_dir, connection_address, tftp_port):
-    """ this is a simple TFTP server that will listen on the specified
-        port and serve data rooted at the specified data. only read
-        requests are supported for security reasons.
-    """
-    print("Starting TFTP...")
-    srvr = TFTPServer(data_dir, tftp_port, connection_address)
+# TFTP server that listens and serves a boot file from a specified path
+# For security reasonse, only read requests are supported.
+# data_dir  :   path to boot files
+# tftp_port :   port that TFTP service listens on
+# host_ip   :   IP address of the machine hosting piman
+def do_tftpd(data_dir, tftp_port, host_ip):
+    print("TFTP - starting")
+    srvr = TFTPServer(data_dir, tftp_port, host_ip)
     srvr.start()
     srvr.join()
-    print("TFTP is terminating")
-
-
-if __name__ == "__main__":
-    do_tftpd()
+    print("TFTP - terminating")
