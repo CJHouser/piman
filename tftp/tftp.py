@@ -44,11 +44,11 @@ class TFTPServer:
                 thread = Thread(target=self.__serve_file, args=(pkt, addr), name='TFTP serve file')
                 thread.start()
             else:
-                print('tftp debug - bad opcode at thread gen')
+                print('TFTP - unrecognized opcode while serving request')
                 print(pkt)
         sock.close()
 
-    #print("connecting to {}:{}".format(self.host_ip, sending_socket.getsockname()[1]))
+
     # Serves a single file on an ephemeral port
     def __serve_file(self, pkt, addr):
         sock = socket(AF_INET, SOCK_DGRAM)
@@ -76,12 +76,10 @@ class TFTPServer:
             if opcode == TFTPServer.ACK_OPCODE:
                 block = block + 1
             else:
-                print('tftpdebug - bad opcode in serve_file')
-                print('====================================')
+                print('TFTP - unrecognized opcode while serving file')
                 print(recv_pkt)
-                print(filename)
-                print('====================================')
         print('TFTP - finished sending {}'.format(filename))
+        requested_file.close()
         sock.close()
 
 

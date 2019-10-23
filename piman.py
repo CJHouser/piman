@@ -1,16 +1,15 @@
 # import click
 from threading import Thread
 from sys import argv
-
-
 from dhcp import dhcp
 from tcp import tcp
 from tftp import tftp
 from utility import power_cycle
 from utility import findport
+import os
 
-
-config_file = open('config.txt', 'r')
+direc = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
+config_file = open('{}/config.txt'.format(direc), 'r')
 data_dir    = config_file.readline().rstrip()
 tftp_port   = int(config_file.readline())
 tcp_port    = int(config_file.readline())
@@ -37,8 +36,9 @@ def server():
     tcp_thread.join()
 
 
-def restart(switch_port):
-    power_cycle.power_cycle(switch_port, switch_ip, community)
+def restart(switch_ports):
+    for switch_port in switch_ports:
+        power_cycle.power_cycle(switch_port, switch_ip, community)
 
 
 def reinstall(ip):
@@ -51,7 +51,7 @@ def reinstall(ip):
     if mac:
         switch_port = findport.find_port(mac, switch_ip, community)
         if switch_port:
-            with open('./reinstall.txt', 'w') as f:
+            with open('{}/reinstall.txt'.format(direc), 'w') as f:
                 f.write(ip) 
             power_cycle.power_cycle(switch_port, switch_ip, community)
         else:

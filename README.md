@@ -3,46 +3,39 @@ Carefree (Team 1) - CS158B - Fall 2019
 # Development tips
 There are a few potholes to watch out for that can cause problems while working on this code:
 
-* initram
+* __initram__
     
     In the directory install/initram there are some files which are used by the Raspberry Pis to remote boot. The Pi's receive these files via a zip file called initramfs.gz. Any time a change is made to the files in install/initram, a new initramfs.gz will need to be created. This can be done using the script install/initram/create_initramfs.gz.sh. The zip file will be placed in /install/boot by the script.
 
-* rootfs.tgz
+* __rootfs.tgz__
     
     TCP needs to send the Raspberry Pi's a file called rootfs.tgz. This file is NOT included in the repo and must be obtained from Ben Reed. It should be placed in install/boot with the rest of the boot data.
 
-* cmdline.txt
+* __cmdline.txt__
 
     This file, located in install/boot, contains a hardcoded IP address that needs to be changed in order for remote boot to succeed. The IP address should be the IP address of the machine that is hosting piman.
 
 # Configuration
-* hosts.csv
+* __hosts.csv__
 
     Each line in the hosts.csv file maps a Raspberry Pi's MAC address to an IP address. DHCP uses this file to assign Raspberry Pi's an IP address.
     
     `<Raspberry Pi MAC Address>;<IP address>;<Machine name>;<Timestamp>`
 
-* config.txt
+* __config.txt__
 
     Contains configuration information to allow piman to be run on any machine without making changes to the code. It MUST follow the following format:
     
-    ```
+```
     <Path to boot data>
-    
     <TFTP port>
-    
     <TCP port>
-    
     <IP address of the machine hosting piman>
-    
     <Subnet mask>
-    
     <Path to hosts.csv>
-    
     <IP address of the switch>
-    
     <SNMP community phrase>
-    ```
+```
 
 # Functionality
 * Server
@@ -51,14 +44,18 @@ There are a few potholes to watch out for that can cause problems while working 
 
 * Restart
     
-    `sudo python3 piman.pyz restart <switch port>`
+    `python3 piman.pyz restart <switch ports>`
+
+    `python3 piman.pyz restart 1 4 10`
 
 * Reinstall
-    
-    `sudo python3 piman.pyz reinstall <Raspberry Pi IP address>`
-    
+
     The Raspberry Pi IP address must be in the hosts.csv file for this function to work.
 
+    `python3 piman.pyz reinstall <Raspberry Pi IPv4 address>`
+
+    `python3 piman.pyz reinstall 172.30.1.11'
+    
 ### DHCP Server
 
 The DHCP server utilized for this project is a very lightweight, barebone version of [this DHCP server](https://github.com/niccokunzmann/python_dhcp_server). To manually assign IPs to known MAC addresses, you can modify the `hosts.csv` file located in the root of the main directory. The Pis will send a DHCP packet to the manager which in then responds with an IP and the location of the TFTP server. 
