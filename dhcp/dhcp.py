@@ -35,7 +35,7 @@ class WriteBootProtocolPacket(object):
     
     vendor_class_identifier = "PXEClient"
     boot_file_name = "bootcode.bin"
-    router = '172.30.1.1'
+    router = '172.30.3.1'
     client_mac_address = None
     magic_cookie = '99.130.83.99'
 
@@ -186,26 +186,25 @@ class Transaction(object):
         for known_host in self.server.hosts.get():
             if discovery.client_mac_address == known_host.to_tuple()[0]:
                 should_send_offer = True
-
+    
         if should_send_offer:
             self.send_offer(discovery)
         else:
-            print('DHCP - unknown MAC: {}. skip IP assignment'
-                    .format(discovery.client_mac_address))
+            print("DHCP - unknown MAC: {}".format(discovery.client_mac_address))
 
     def send_offer(self, discovery):
         # https://tools.ietf.org/html/rfc2131
         offer = WriteBootProtocolPacket(self.configuration)
         offer.parameter_order = discovery.parameter_request_list
         mac = discovery.client_mac_address
-        ip = offer.your_ip_address = self.server.get_ip_address(discovery) 
+        ip = offer.your_ip_address = self.server.get_ip_address(discovery)
         offer.transaction_id = discovery.transaction_id
         offer.relay_agent_ip_address = discovery.relay_agent_ip_address
         offer.client_mac_address = mac
         offer.client_ip_address = discovery.client_ip_address or '0.0.0.0'
         offer.bootp_flags = discovery.bootp_flags
         offer.dhcp_message_type = 'DHCPOFFER'
-        
+        offer.server_identifier = self.server.configuration.ip
         offer.client_identifier = mac
         #print(offer)
         self.server.broadcast(offer)
@@ -228,6 +227,7 @@ class Transaction(object):
         ack.client_ip_address = request.client_ip_address or '0.0.0.0'
         ack.your_ip_address = self.server.get_ip_address(request)
         ack.dhcp_message_type = 'DHCPACK'
+        ack.server_identifier = self.server.configuration.ip
         self.server.broadcast(ack)
 
     def received_dhcp_inform(self, inform):
@@ -527,7 +527,7 @@ class DHCPServer(object):
                 assert self.is_valid_client_address(ip)
             print('DHCP - new ip:', ip)
         if not any([host.ip == ip for host in known_hosts]):
-            print('DHCP - add {} {} {}'.format(mac_address, ip, packet.host_name))
+            print('DHCP - add', mac_address, ip, packet.host_name)
             self.hosts.replace(Host(mac_address, ip, packet.host_name or '', time.time()))
         return ip
 
@@ -541,7 +541,7 @@ class DHCPServer(object):
             data = packet.to_bytes()
             self.broadcast_socket.sendto(data, ('255.255.255.255', 68))
         except:
-            print('DHCP - error broadcasting')
+            print('DCHP - error broadcasting')
             traceback.print_exc()
 
 
@@ -576,15 +576,18 @@ Since the entry point of the DHCP + PXE server is via piman, we no longer need t
 The entry point for the dhcp code is the do_dhcp function, which will spin up a server with the given IP, subnet_mask,
 and file containing a mapping of MAC addresses to static IPs.
 """
-def do_dhcp(mac_ip_file, subnet_mask, host_ip):
-    configuration = DHCPServerConfiguration(host_ip, subnet_mask)
+def do_dhcp(mac_ip_file, subnet_mask, ip, lease_time):
+    configuration = DHCPServerConfiguration(ip, subnet_mask)
     configuration.host_file = mac_ip_file
     #configuration.debug = print
     #configuration.adjust_if_this_computer_is_a_router()
     #configuration.router #+= ['192.168.0.1']
-    configuration.ip_address_lease_time = 1296000
+    configuration.ip_address_lease_time = lease_time
     server = DHCPServer(configuration)
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
-    print("DHCP - starting")
+    print("DHCP - running...")
     server.run()
+    
+if __name__ == '__main__':
+    do_dhcp()

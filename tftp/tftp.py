@@ -29,9 +29,10 @@ class TFTPServer:
         self.data_dir = data_dir
         self.tftp_port = tftp_port
         self.host_ip = host_ip
+        self.count = 0
 
 
-    # Starts the TfTP service thread
+    # Starts the TFTP service thread
     def start(self):
         sock = socket(AF_INET, SOCK_DGRAM)
         sock.bind((self.host_ip, self.tftp_port))
@@ -41,45 +42,73 @@ class TFTPServer:
             pkt, addr = sock.recvfrom(self.BUFFER_SIZE)
             [opcode] = unpack('!H', pkt[0:2])
             if opcode == TFTPServer.RRQ_OPCODE:
-                thread = Thread(target=self.__serve_file, args=(pkt, addr), name='TFTP serve file')
+                thread = Thread(target=self.__serve_file, args=(pkt, addr))
                 thread.start()
             else:
                 print('TFTP - unrecognized opcode while serving request')
-                print(pkt)
+                sock.sendto(self.pack_error(20, b'Illegal operation\0'), addr)
         sock.close()
 
 
-    # Serves a single file on an ephemeral port
+    def pack_error(self, errcode, errmsg):
+        error_opcode = pack('!H', TFTPServer.ERROR_OPCODE)
+        error_code = pack('!H', errcode)
+        packet = error_opcode + error_code + errmsg
+        return packet
+
+
     def __serve_file(self, pkt, addr):
         sock = socket(AF_INET, SOCK_DGRAM)
+        sock.settimeout(5)
         sock.bind((self.host_ip, 0))
-        data_opcode = pack('!H', TFTPServer.DATA_OPCODE)
-        filename = pkt[2:].split(b'\0')[0]
-        requested_file = self.open_from_zip(filename.decode())
-        if not requested_file:
-            sock.close()
-            return
+        sock.connect(addr)
+        
+        filename = pkt[2:].split(b'\0')[0].decode()
+        req_file = self.open_from_zip(filename)
+        
+        do_transfer = True
+        retry = 0
         block = 1
-        do_read = True
-        print('TFTP - sending {} from {}:{} to {}'.format(
-            filename, self.host_ip, sock.getsockname()[1], addr))
-        while do_read:
-            requested_file.seek(512 * (block - 1))
-            data = requested_file.read(512)
+
+        data_opcode = pack('!H', TFTPServer.DATA_OPCODE)
+
+        if not req_file:
+            do_transfer = False
+            sock.send(self.pack_error(17, b'File not found\0'))
+        else:
+            print('TFTP - TRANSFER\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+
+        while do_transfer:
+            req_file.seek(512 * (block - 1))
+            data = req_file.read(512)
+
             if data:
-                data_pkt = data_opcode + pack('!H', block) + data
-                sock.sendto(data_pkt, addr)
-            else:
-                do_read = False
-            recv_pkt = sock.recv(self.BUFFER_SIZE) #need to check for timeout in case ack lost
+                sock.send(data_opcode + pack('!H', block) + data)
+            try:
+                recv_pkt = sock.recv(512)
+            except:
+                if retry > 5:
+                    print('TFTP - CANCEL\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+                    break
+                else:
+                    retry = retry + 1
+                    print('TFTP - TIMEOUT\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+                    continue
             [opcode] = unpack('!H', recv_pkt[0:2])
+            [rblock] = unpack('!H', recv_pkt[2:4])
             if opcode == TFTPServer.ACK_OPCODE:
-                block = block + 1
+                if len(data) < 512:
+                    do_transfer = False
+                elif rblock == block:
+                    block = block + 1
+                else:
+                    print('TFTP - BAD BLOCK\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
             else:
-                print('TFTP - unrecognized opcode while serving file')
-                print(recv_pkt)
-        print('TFTP - finished sending {}'.format(filename))
-        requested_file.close()
+                sock.send(self.pack_error(20, b'Illegal operation\0'))
+                do_transfer = False
+
+        if req_file:
+            req_file.close()
         sock.close()
 
 
@@ -92,10 +121,6 @@ class TFTPServer:
             if filepath in zf.namelist():
                 fd = zf.open(filepath)
         return fd
-
-
-    def join(self):
-        self.tftp_thread.join()
 
 
 # TFTP server that listens and serves a boot file from a specified path

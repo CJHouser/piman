@@ -6,3 +6,4 @@ install/boot
 hosts.csv
 172.30.1.254
 private@1
+1200

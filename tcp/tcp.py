@@ -17,6 +17,8 @@ SEND_BOOT = b"boot\n" + b"EOM\n"
 SEND_FORMAT = b"format\n" + b"EOM\n"
 
 
+direc = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2])
+
 class TCPServer:
     # TCPServer creates two TCP sockets, control and file socket.
     # The control socket serves control commands, such as INSTALLED, NEED FILE
@@ -91,7 +93,8 @@ class TCPServer:
                     print("TCP  - uninstalled, sending format")
                     client_socket.send(SEND_FORMAT)
                 elif req == RECV_IS_INSTALLED:
-                    reinstall_list = [line.rstrip('\n') for line in open('./reinstall.txt', 'r')]
+                    with open('{}/reinstall.txt'.format(direc), 'r') as fd:
+                        reinstall_list = [line.rstrip('\n') for line in fd]
                     if client_addr[0] in reinstall_list:
                         print("TCP  - reinstall required, sending format")
                         client_socket.send(SEND_FORMAT)
