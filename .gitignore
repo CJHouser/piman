@@ -49,3 +49,4 @@ __pycache__
 /standalone/DHCPGui.exe
 build/
 install/boot/rootfs.tgz
+install/boot/initramfs.gz

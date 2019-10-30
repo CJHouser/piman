@@ -1,6 +1,6 @@
 import click
 import piman
-from utility import power_cycle
+
 
 @click.group()
 def cli():
@@ -13,9 +13,9 @@ def server():
 
 
 @cli.command()
-@click.argument('switch_port', type=click.INT)
-def restart(switch_port):
-    piman.restart(switch_port)
+@click.argument('switch_ports', nargs=-1, type=click.INT)
+def restart(switch_ports):
+    piman.restart(switch_ports)
 
 
 @cli.command()
