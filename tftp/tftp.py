@@ -71,7 +71,8 @@ class TFTPServer:
             do_transfer = False
             sock.sendto(self.pack_error(1, 'File not found'), addr)
         else:
-            print('TFTP - TRANSFER\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
+            print('TFTP - TRANSFER\t{}\t{} -> {}:{}'.format(filename,
+                sock.getsockname()[1], addr[0], addr[1]))
             all_data = req_file.read()
 
         while do_transfer:
@@ -83,11 +84,11 @@ class TFTPServer:
                 rpkt, raddr = sock.recvfrom(512)
             except:
                 if retry > 5:
-                    print('TFTP - CANCEL\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - CANCEL\t{}'.format(filename))
                     break
                 else:
                     retry = retry + 1
-                    print('TFTP - TIMEOUT\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - TIMEOUT\t{}'.format(filename))
                     continue
             [opcode] = unpack('!H', rpkt[0:2])
             [rblock] = unpack('!H', rpkt[2:4])
@@ -101,7 +102,7 @@ class TFTPServer:
                 elif rblock == block + 1:
                     block = block + 1
                 else:
-                    print('TFTP - BAD BLOCK\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - BAD BLOCK\t{}'.format(filename))
             else:
                 sock.sendto(self.pack_error(4, 'Illegal TFTP operation'), addr)
                 do_transfer = False
