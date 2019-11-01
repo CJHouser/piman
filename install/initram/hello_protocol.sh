@@ -1,4 +1,6 @@
 #!/bin/busybox sh
+exec 2>&1
+set -x
 
 # Send and recv are from skeleton code
 send() {
@@ -24,6 +26,7 @@ recv() {
 
 format() {
     send "FORMATTING"
+    umount /m
     # Code from Ben that formats the partitions and mounts the OS on /m
     sfdisk /dev/mmcblk0 <<EOC
     label: dos
@@ -105,7 +108,6 @@ do
         ;;
     format)
         format
-        send "IS_FORMATTED"
         cd /m
         # After the partitions have been formatted, send "FORMATTED" to let Piman know
         # that we are ready to receive the port # that we will transfer the file over
@@ -113,6 +115,7 @@ do
         nc $master 4444 | gunzip | tar -xf -
         # Mounts the OS on /new_root and exits
         mounting
+	send "IS_FORMATTED"
         exit 0
 	;;
     reinstall)
@@ -127,5 +130,4 @@ do
         ;;
     esac
 done
-exit 0    
-
+exit 0

@@ -7,9 +7,9 @@ import os
 
 
 # messages recieved from a Raspberry Pi
-RECV_IS_INSTALLED = "IS_INSTALLED"
-RECV_IS_UNINSTALLED = "IS_UNINSTALLED"
-RECV_IS_FORMATTED =  "IS_FORMATTED"
+RECV_IS_INSTALLED = "IS_INSTALLED\n"
+RECV_IS_UNINSTALLED = "IS_UNINSTALLED\n"
+RECV_IS_FORMATTED =  "IS_FORMATTED\n"
 
 
 # messages sent to a Raspberry Pi
@@ -84,11 +84,11 @@ class TCPServer:
     # Serves incoming control requests
     def __process_requests(self, client_socket, client_addr):
         try:
-            print("TCP  - serving client from: {}".format(client_addr))    
-            req = client_socket.recv(1024)
-            while req:    
-                req = req.decode("ASCII").strip()
-                print('TCP  - recieved request {}'.format(req))
+            print("TCP  - serving client from: {}".format(client_addr))
+            sockfd = client_socket.makefile()
+            req = sockfd.readline()
+            while req:
+                print('TCP  - recieved request {}'.format(req), end = '')
                 if req == RECV_IS_UNINSTALLED:
                     print("TCP  - uninstalled, sending format")
                     client_socket.send(SEND_FORMAT)
@@ -104,9 +104,9 @@ class TCPServer:
                 elif req == RECV_IS_FORMATTED:
                     print("TCP  - is formatted, sending file")
                     break
-                else:
-                    print("TCP  - unsupported request")
-                req = client_socket.recv(1024)
+                #else:
+                #    print("TCP  - unsupported request")
+                req = sockfd.readline()
         except:
             traceback.print_exc()
         client_socket.close()
