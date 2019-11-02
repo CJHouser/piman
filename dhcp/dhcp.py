@@ -35,7 +35,7 @@ class WriteBootProtocolPacket(object):
     
     vendor_class_identifier = "PXEClient"
     boot_file_name = "bootcode.bin"
-    router = '172.30.3.1'
+    router = '172.30.1.1'
     client_mac_address = None
     magic_cookie = '99.130.83.99'
 
@@ -237,7 +237,7 @@ class Transaction(object):
 class DHCPServerConfiguration(object):
     
     dhcp_offer_after_seconds = 1 # must be >0!!!
-    dhcp_acknowledge_after_seconds = 10
+    dhcp_acknowledge_after_seconds = 1
     length_of_transaction = 40
 
     #network = '192.168.173.0'
@@ -245,7 +245,7 @@ class DHCPServerConfiguration(object):
     #subnet_mask = '255.255.255.0'
     router = '172.30.1.1'
     # 1 day is 86400
-    ip_address_lease_time = 1296000# seconds
+    ip_address_lease_time = 1200# seconds
     domain_name_server = None # list of ips
 
     host_file = 'hosts.csv'
