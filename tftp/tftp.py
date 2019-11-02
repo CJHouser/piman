@@ -29,10 +29,9 @@ class TFTPServer:
         self.data_dir = data_dir
         self.tftp_port = tftp_port
         self.host_ip = host_ip
-        self.count = 0
 
 
-    # Starts the TFTP service thread
+    # TFTP service loop. Spawns a thread for each RRQ received.
     def start(self):
         sock = socket(AF_INET, SOCK_DGRAM)
         sock.bind((self.host_ip, self.tftp_port))
@@ -46,73 +45,75 @@ class TFTPServer:
                 thread.start()
             else:
                 print('TFTP - unrecognized opcode while serving request')
-                sock.sendto(self.pack_error(20, b'Illegal operation\0'), addr)
+                sock.sendto(self.pack_error(4, 'Illegal operation'), addr)
         sock.close()
 
 
-    def pack_error(self, errcode, errmsg):
-        error_opcode = pack('!H', TFTPServer.ERROR_OPCODE)
-        error_code = pack('!H', errcode)
-        packet = error_opcode + error_code + errmsg
-        return packet
-
-
+    # Sends a single file in 512-byte blocks to the requesting host.
+    # pkt   : RRQ packet containing the requested file
+    # addr  : Tuple containing the IP address and port of the requesting host
     def __serve_file(self, pkt, addr):
         sock = socket(AF_INET, SOCK_DGRAM)
+        # Wait 5 seconds for an ACK before resending a block of data
         sock.settimeout(5)
         sock.bind((self.host_ip, 0))
-        sock.connect(addr)
         
         filename = pkt[2:].split(b'\0')[0].decode()
         req_file = self.open_from_zip(filename)
         
         do_transfer = True
         retry = 0
-        block = 1
+        block = 0
 
         data_opcode = pack('!H', TFTPServer.DATA_OPCODE)
 
         if not req_file:
             do_transfer = False
-            sock.send(self.pack_error(17, b'File not found\0'))
+            sock.sendto(self.pack_error(1, 'File not found'), addr)
         else:
-            print('TFTP - TRANSFER\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+            print('TFTP - TRANSFER\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
+            all_data = req_file.read()
 
         while do_transfer:
-            req_file.seek(512 * (block - 1))
-            data = req_file.read(512)
+            data = all_data[block * 512 : (block * 512) + 512]
 
-            if data:
-                sock.send(data_opcode + pack('!H', block) + data)
+            sock.sendto(data_opcode + pack('!H', block + 1) + data, addr)
+
             try:
-                recv_pkt = sock.recv(512)
+                rpkt, raddr = sock.recvfrom(512)
             except:
                 if retry > 5:
-                    print('TFTP - CANCEL\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - CANCEL\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
                     break
                 else:
                     retry = retry + 1
-                    print('TFTP - TIMEOUT\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - TIMEOUT\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
                     continue
-            [opcode] = unpack('!H', recv_pkt[0:2])
-            [rblock] = unpack('!H', recv_pkt[2:4])
-            if opcode == TFTPServer.ACK_OPCODE:
+            [opcode] = unpack('!H', rpkt[0:2])
+            [rblock] = unpack('!H', rpkt[2:4])
+            if raddr != addr:
+                print('TFTP - BAD TID\t{}\t\t{}:{}'.format(filename, raddr[0], raddr[1]))
+                sock.sendto(self.pack_error(5, 'Unknown transfer ID'), raddr)
+            elif opcode == TFTPServer.ACK_OPCODE:
+                # Transfer complete if data block ACKd was less than 512 bytes
                 if len(data) < 512:
                     do_transfer = False
-                elif rblock == block:
+                elif rblock == block + 1:
                     block = block + 1
                 else:
-                    print('TFTP - BAD BLOCK\t{}\t{}:{}'.format(filename, addr[0], addr[1]))
+                    print('TFTP - BAD BLOCK\t{}\t\t{}:{}'.format(filename, addr[0], addr[1]))
             else:
-                sock.send(self.pack_error(20, b'Illegal operation\0'))
+                sock.sendto(self.pack_error(4, 'Illegal TFTP operation'), addr)
                 do_transfer = False
-
+        
+        # Clean up file descriptor and socket
         if req_file:
             req_file.close()
         sock.close()
 
 
-    # Serves data from piman.pyz
+    # Retrieves a file from the piman archive. (.pyz)
+    # filename  : name of the file to be retrieved.
     def open_from_zip(self, filename):
         zipfile = os.path.dirname(os.path.dirname(__file__))
         fd = None
@@ -121,6 +122,14 @@ class TFTPServer:
             if filepath in zf.namelist():
                 fd = zf.open(filepath)
         return fd
+
+
+    def pack_error(self, errcode, errmsg):
+        error_opcode = pack('!H', TFTPServer.ERROR_OPCODE)
+        error_code = pack('!H', errcode)
+        error_msg = '{}\0'.format(errmsg).encode()
+        packet = error_opcode + error_code + error_msg
+        return packet
 
 
 # TFTP server that listens and serves a boot file from a specified path
@@ -132,5 +141,4 @@ def do_tftpd(data_dir, tftp_port, host_ip):
     print("TFTP - starting")
     srvr = TFTPServer(data_dir, tftp_port, host_ip)
     srvr.start()
-    srvr.join()
     print("TFTP - terminating")
