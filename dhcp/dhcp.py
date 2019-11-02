@@ -237,7 +237,7 @@ class Transaction(object):
 class DHCPServerConfiguration(object):
     
     dhcp_offer_after_seconds = 1 # must be >0!!!
-    dhcp_acknowledge_after_seconds = 1
+    dhcp_acknowledge_after_seconds = 3
     length_of_transaction = 40
 
     #network = '192.168.173.0'
