@@ -237,7 +237,7 @@ class Transaction(object):
 class DHCPServerConfiguration(object):
     
     dhcp_offer_after_seconds = 1 # must be >0!!!
-    dhcp_acknowledge_after_seconds = 1
+    dhcp_acknowledge_after_seconds = 10
     length_of_transaction = 40
 
     #network = '192.168.173.0'
@@ -586,7 +586,7 @@ def do_dhcp(mac_ip_file, subnet_mask, ip, lease_time):
     server = DHCPServer(configuration)
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
-    print("DHCP - running...")
+    print("DHCP - RUNNING")
     server.run()
     
 if __name__ == '__main__':
