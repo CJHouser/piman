@@ -13,9 +13,9 @@ def server():
 
 
 @cli.command()
-@click.argument('switch_ports', nargs=-1, type=click.INT)
-def restart(switch_ports):
-    piman.restart(switch_ports)
+@click.argument('switch_port', nargs=1, type=click.INT)
+def restart(switch_port):
+    piman.restart(switch_port)
 
 
 @cli.command()
