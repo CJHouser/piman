@@ -586,7 +586,7 @@ def do_dhcp(mac_ip_file, subnet_mask, ip, lease_time):
     server = DHCPServer(configuration)
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()
-    print("DHCP - running...")
+    print("DHCP - RUNNING")
     server.run()
     
 if __name__ == '__main__':

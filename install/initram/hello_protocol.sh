@@ -27,6 +27,7 @@ recv() {
 format() {
     send "FORMATTING"
     umount /m
+    umount /new_root
     # Code from Ben that formats the partitions and mounts the OS on /m
     sfdisk /dev/mmcblk0 <<EOC
     label: dos
