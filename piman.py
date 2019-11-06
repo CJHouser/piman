@@ -45,16 +45,18 @@ def restart(switch_ports):
 def remshell(pi_address, port_on_localhost):
     mac = None
     print("remshell")
-    with open('{}/{}'.format(direc, remshell_file), 'r') as fd:
+    with open('{}/{}'.format(direc, mac_ip_file), 'r') as fd:
         for line in fd:
             if pi_address == line.split(';')[1]:
-                mac = line.split(';')[1]
+                mac = line.split(';')[0]
                 break;
         if mac:
             switch_port = findport.find_port(mac, switch_ip, community)
             if switch_port:
                 with open('{}/remshell.txt'.format(direc), 'w') as f:
-                    f.write(pi_address)
+                    f.write(str(pi_address))
+                    f.write(',')
+                    f.write(str(port_on_localhost))
             else:
                 print('Switch port not found')
         else:

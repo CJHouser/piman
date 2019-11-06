@@ -10,11 +10,12 @@ import os
 RECV_IS_INSTALLED = "IS_INSTALLED\n"
 RECV_IS_UNINSTALLED = "IS_UNINSTALLED\n"
 RECV_IS_FORMATTED =  "IS_FORMATTED\n"
-
+RECV_IS_REMSHELL = "IS_REMSHELL\n"
 
 # messages sent to a Raspberry Pi
 SEND_BOOT = b"boot\n" + b"EOM\n"
 SEND_FORMAT = b"format\n" + b"EOM\n"
+SEND_REMSHELL = b"remshell\n" + b"EOM\n"
 
 
 direc = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2])
@@ -105,6 +106,17 @@ class TCPServer:
                 elif req == RECV_IS_FORMATTED:
                     print("TCP  - is formatted, sending file")
                     break
+                elif req == RECV_IS_REMSHELL:
+                    print("RECEIVED REMSHELL!")
+                    pi_address = None
+                    with open('{}/remshell.txt'.format(direc), 'r+') as fd:
+                        for line in fd:
+                            pi_address = line.split(',')[0]
+                            port_localhost = line.split(',')[1]
+                        fd.truncate(0)
+                    if client_addr[0] == pi_address:
+                        print("TCP - remshell connecting")
+                        client_socket.send(SEND_REMSHELL)
                 #else:
                 #    print("TCP  - unsupported request")
                 req = sockfd.readline()
