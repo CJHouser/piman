@@ -23,6 +23,11 @@ def restart(switch_ports):
 def reinstall(ip):
     piman.reinstall(ip)
 
+@cli.command()
+@click.argument('pi_address')
+@click.argument('port_on_localhost')
+def remshell(pi_address, port_on_localhost):
+    piman.remshell(pi_address, port_on_localhost)
 
 if __name__ == "__main__":
     cli()

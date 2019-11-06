@@ -18,6 +18,7 @@ subnet_mask = config_file.readline().rstrip()
 mac_ip_file = config_file.readline().rstrip()
 switch_ip   = config_file.readline().rstrip()
 community   = config_file.readline().rstrip()
+remshell_file = config_file.readline().rstrip()
 ip_lease_time = int(config_file.readline().rstrip())
 config_file.close()
 
@@ -41,6 +42,23 @@ def restart(switch_ports):
     for switch_port in switch_ports:
         power_cycle.power_cycle(switch_port, switch_ip, community)
 
+def remshell(pi_address, port_on_localhost):
+    mac = None
+    print("remshell")
+    with open('{}/{}'.format(direc, remshell_file), 'r') as fd:
+        for line in fd:
+            if pi_address == line.split(';')[1]:
+                mac = line.split(';')[1]
+                break;
+        if mac:
+            switch_port = findport.find_port(mac, switch_ip, community)
+            if switch_port:
+                with open('{}/remshell.txt'.format(direc), 'w') as f:
+                    f.write(pi_address)
+            else:
+                print('Switch port not found')
+        else:
+            print('{} not found'.format(pi_address))
 
 def reinstall(ip):
     mac = None
