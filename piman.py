@@ -57,6 +57,7 @@ def remshell(pi_address, port_on_localhost):
                     f.write(str(pi_address))
                     f.write(',')
                     f.write(str(port_on_localhost))
+                power_cycle.power_cycle(switch_port, switch_ip, community)
             else:
                 print('Switch port not found')
         else:
