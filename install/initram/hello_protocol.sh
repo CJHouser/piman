@@ -1,6 +1,4 @@
 #!/bin/busybox sh
-exec 2>&1
-set -x
 
 # Send and recv are from skeleton code
 send() {
