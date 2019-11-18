@@ -8,15 +8,11 @@ import socket
 
 from .listener import *
 
-def get_host_ip_addresses():
-    return gethostbyname_ex(gethostname())[2]
-
 """
 This class contains specified attributes which will be populated, these attributes are associated with
 the required options for our DHCP+PXE server. 
 """
 class WriteBootProtocolPacket(object):
-
     message_type = 2 # 1 for client -> server 2 for server -> client
     hardware_type = 1
     hardware_address_length = 6
@@ -47,9 +43,9 @@ class WriteBootProtocolPacket(object):
             names = ['option_{}'.format(i)]
             if i < len(options) and hasattr(configuration, options[i][0]):
                 names.append(options[i][0])
-            for name in names:
-                if hasattr(configuration, name):
-                    setattr(self, name, getattr(configuration, name))
+        for name in names:
+            if hasattr(configuration, name):
+                setattr(self, name, getattr(configuration, name))
 
     def to_bytes(self):
         result = bytearray(236)
@@ -75,7 +71,6 @@ class WriteBootProtocolPacket(object):
 
         for option in self.options:
             value = self.get_option(option)
-            #print(option, value)
             if value is None:
                 continue
             result += bytes([option, len(value)]) + value
@@ -118,7 +113,6 @@ class WriteBootProtocolPacket(object):
         return str(ReadBootProtocolPacket(self.to_bytes()))
 
 class DelayWorker(object):
-
     def __init__(self):
         self.closed = False
         self.queue = queue.PriorityQueue()
@@ -150,7 +144,6 @@ responsible for sending out the initial offer packet. It is also responsible for
 packet which is broadcast by the client.
 """
 class Transaction(object):
-
     def __init__(self, server):
         self.server = server
         self.configuration = server.configuration
@@ -206,8 +199,7 @@ class Transaction(object):
         offer.dhcp_message_type = 'DHCPOFFER'
         offer.server_identifier = self.server.configuration.ip
         offer.client_identifier = mac
-        #print(offer)
-        self.server.broadcast(offer)
+        self.server.unicast(offer, ip)
     
     def received_dhcp_request(self, request):
         if self.is_done(): return 
@@ -228,51 +220,44 @@ class Transaction(object):
         ack.your_ip_address = self.server.get_ip_address(request)
         ack.dhcp_message_type = 'DHCPACK'
         ack.server_identifier = self.server.configuration.ip
-        self.server.broadcast(ack)
+        self.server.unicast(ack, request.requested_ip_address or request.client_ip_address)
 
     def received_dhcp_inform(self, inform):
         self.close()
         self.server.client_has_chosen(inform)
 
 class DHCPServerConfiguration(object):
-    
     dhcp_offer_after_seconds = 1 # must be >0!!!
     dhcp_acknowledge_after_seconds = 10
     length_of_transaction = 40
 
-    #network = '192.168.173.0'
-    #broadcast_address = '255.255.255.255'
-    #subnet_mask = '255.255.255.0'
-    router = '172.30.1.1'
-    # 1 day is 86400
-    ip_address_lease_time = 1200# seconds
-    domain_name_server = None # list of ips
-
-    host_file = 'hosts.csv'
-
     debug = lambda *args, **kw: None
 
-    def __init__(self, ip, subnet_mask):
+    def __init__(self, ip, subnet_mask, hosts_file, lease_time):
         self.ip = ip
         self.subnet_mask = subnet_mask
+        self.host_file = hosts_file
+        self.ip_address_lease_time = lease_time
         self.network = network_from_ip_subnet(ip, subnet_mask)
 
     def load(self, file):
         with open(file) as f:
             exec(f.read(), self.__dict__)
-
+    
+    # By convention (not necessarily true), IPv4 addresses than end in .1 are
+    # assigned to routers/gateways. 
     def adjust_if_this_computer_is_a_router(self):
         ip_addresses = get_host_ip_addresses()
-        for ip in reversed(ip_addresses):
+        for ip in ip_addresses:
             if ip.split('.')[-1] == '1':
-                self.router = [ip]
-                self.domain_name_server = [ip]
+                self.router = ip
+                self.domain_name_server = ip
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
                 #self.ip_forwarding_enabled = True
                 #self.non_local_source_routing_enabled = True
                 #self.perform_mask_discovery = True
-
+    
     def all_ip_addresses(self):
         ips = ip_addresses(self.network, self.subnet_mask)
         for i in range(5):
@@ -281,22 +266,6 @@ class DHCPServerConfiguration(object):
 
     def network_filter(self):
         return NETWORK(self.network, self.subnet_mask)
-
-def network_from_ip_subnet(ip, subnet_mask):
-    import socket
-    subnet_mask = struct.unpack('>I', socket.inet_aton(subnet_mask))[0]
-    ip = struct.unpack('>I', socket.inet_aton(ip))[0]
-    network = ip & subnet_mask
-    return socket.inet_ntoa(struct.pack('>I', network))
-
-def ip_addresses(network, subnet_mask):
-    import socket, struct
-    subnet_mask = struct.unpack('>I', socket.inet_aton(subnet_mask))[0]
-    network = struct.unpack('>I', socket.inet_aton(network))[0]
-    network = network & subnet_mask
-    start = network + 1
-    end = (network | (~subnet_mask & 0xffffffff))
-    return (socket.inet_ntoa(struct.pack('>I', i)) for i in range(start, end))
 
 class ALL(object):
     def __eq__(self, other):
@@ -398,7 +367,6 @@ class Host(object):
     def has_valid_ip(self):
         return self.ip and self.ip != '0.0.0.0'
         
-
 class HostDatabase(object):
     def __init__(self, file_name):
         self.db = CSVDatabase(file_name)
@@ -423,14 +391,8 @@ class HostDatabase(object):
     def replace(self, host):
         self.delete(host)
         self.add(host)
-        
-def sorted_hosts(hosts):
-    hosts = list(hosts)
-    hosts.sort(key = lambda host: (host.hostname.lower(), host.mac.lower(), host.ip.lower()))
-    return hosts
-
+ 
 class DHCPServer(object):
-
     def __init__(self, configuration = None):
         if configuration == None:
             configuration = DHCPServerConfiguration()
@@ -544,6 +506,13 @@ class DHCPServer(object):
             print('DCHP - error broadcasting')
             traceback.print_exc()
 
+    def unicast(self, packet, daddr):
+        try:
+            data = packet.to_bytes()
+            self.socket.sendto(data, (daddr, 68))
+        except:
+            print('DCHP - error unicasting')
+            traceback.print_exc()
 
     def run(self):
         while not self.closed:
@@ -571,18 +540,37 @@ class DHCPServer(object):
     def get_current_hosts(self):
         return sorted_hosts(self.hosts.get(last_used = GREATER(self.time_started)))
 
-"""
-Since the entry point of the DHCP + PXE server is via piman, we no longer need the click options in this class.
-The entry point for the dhcp code is the do_dhcp function, which will spin up a server with the given IP, subnet_mask,
-and file containing a mapping of MAC addresses to static IPs.
-"""
-def do_dhcp(mac_ip_file, subnet_mask, ip, lease_time):
-    configuration = DHCPServerConfiguration(ip, subnet_mask)
-    configuration.host_file = mac_ip_file
+# Produces a list of inet addresses associated with the local host.
+def get_host_ip_addresses():
+    return gethostbyname_ex(gethostname())[2]
+
+# Produces the subnet address from an inet address and a subnet mask.
+def network_from_ip_subnet(ip, subnet_mask):
+    import socket
+    subnet_mask = struct.unpack('>I', socket.inet_aton(subnet_mask))[0]
+    ip = struct.unpack('>I', socket.inet_aton(ip))[0]
+    network = ip & subnet_mask
+    return socket.inet_ntoa(struct.pack('>I', network))
+
+# Produces an iterator containing all the host inet addresses on a subnet.
+def ip_addresses(network, subnet_mask):
+    import socket, struct
+    subnet_mask = struct.unpack('>I', socket.inet_aton(subnet_mask))[0]
+    network = struct.unpack('>I', socket.inet_aton(network))[0]
+    network = network & subnet_mask
+    start = network + 1
+    end = (network | (~subnet_mask & 0xffffffff)) # What the fuck?
+    return (socket.inet_ntoa(struct.pack('>I', i)) for i in range(start, end))
+
+def sorted_hosts(hosts):
+    hosts = list(hosts)
+    hosts.sort(key = lambda host: (host.hostname.lower(), host.mac.lower(), host.ip.lower()))
+    return hosts
+
+def do_dhcp(hosts_file, subnet_mask, ip, lease_time):
+    configuration = DHCPServerConfiguration(ip, subnet_mask, hosts_file, lease_time) # configuration for the dhcp server
     #configuration.debug = print
-    #configuration.adjust_if_this_computer_is_a_router()
-    #configuration.router #+= ['192.168.0.1']
-    configuration.ip_address_lease_time = lease_time
+    configuration.adjust_if_this_computer_is_a_router()
     server = DHCPServer(configuration)
     for ip in server.configuration.all_ip_addresses():
         assert ip == server.configuration.network_filter()

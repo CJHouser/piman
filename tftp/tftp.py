@@ -55,7 +55,7 @@ class TFTPServer:
     def __serve_file(self, pkt, addr):
         sock = socket(AF_INET, SOCK_DGRAM)
         # Wait 5 seconds for an ACK before resending a block of data
-        sock.settimeout(5)
+        sock.settimeout(3)
         sock.bind((self.host_ip, 0))
         
         filename = pkt[2:].split(b'\0')[0].decode()
@@ -83,12 +83,12 @@ class TFTPServer:
             try:
                 rpkt, raddr = sock.recvfrom(512)
             except:
-                if retry > 5:
-                    print('TFTP - CANCEL\t{}'.format(filename))
+                if retry > 3:
+                    print('TFTP - CANCEL\t{}\t{}'.format(filename, addr[0]))
                     break
                 else:
                     retry = retry + 1
-                    print('TFTP - TIMEOUT\t{}'.format(filename))
+                    print('TFTP - TIMEOUT\t{}\t{}'.format(filename, addr[0]))
                     continue
             [opcode] = unpack('!H', rpkt[0:2])
             [rblock] = unpack('!H', rpkt[2:4])
@@ -118,10 +118,10 @@ class TFTPServer:
     def open_from_zip(self, filename):
         zipfile = os.path.dirname(os.path.dirname(__file__))
         fd = None
-        with ZipFile(zipfile) as zf:
+        with ZipFile(zipfile, mode='r') as zf:
             filepath = '{}/{}'.format(self.data_dir, filename)
             if filepath in zf.namelist():
-                fd = zf.open(filepath)
+                fd = zf.open(filepath, mode='r')
         return fd
 
 

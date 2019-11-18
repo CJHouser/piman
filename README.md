@@ -35,27 +35,26 @@ There are a few potholes to watch out for that can cause problems while working 
     <Path to hosts.csv>
     <IP address of the switch>
     <SNMP community phrase>
-    <IP address lease time>
+    <IP address lease time in seconds>
 ```
 
 # Functionality
+
 * Server
     
     `sudo python3 piman.pyz server`
 
 * Restart
     
-    `python3 piman.pyz restart <switch port>`
+    `sudo python3 piman.pyz restart <IPv4 addresses>`
 
-    `python3 piman.pyz restart 1`
+    `sudo python3 piman.pyz restart 172.30.1.11 172.30.1.14 172.30.1.20`
 
 * Reinstall
 
-    The Raspberry Pi IP address must be in the hosts.csv file for this function to work. Make sure to call this using the piman.pyz file that is currently running the piman services. If you use a piman.pyz that is in a different directory, the IP will not be written to the reinstall.txt file that is being read by the TCP server.
+    `sudo python3 piman.pyz reinstall <IPv4 address>`
 
-    `python3 piman.pyz reinstall <Raspberry Pi IPv4 address>`
-
-    `python3 piman.pyz reinstall 172.30.1.11'
+    `sudo python3 piman.pyz reinstall 172.30.1.11'
     
 ### DHCP Server
 
