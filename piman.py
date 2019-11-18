@@ -18,9 +18,9 @@ subnet_mask = config_file.readline().rstrip()
 hosts_file  = config_file.readline().rstrip()
 switch_ip   = config_file.readline().rstrip()
 community   = config_file.readline().rstrip()
+remshell_file = config_file.readline().rstrip()
 ip_lease_time = int(config_file.readline().rstrip())
 config_file.close()
-
 
 def server():
     # Populate the local ARP cache using the hosts file
@@ -67,6 +67,27 @@ def restart(host_ips):
             if switch_port:
                 subprocess.call(['arp', '-s', ip, mac, 'temp'])
                 power_cycle.power_cycle(switch_port, switch_ip, community)
+
+def remshell(pi_address, port_on_localhost):
+    mac = None
+    print("remshell")
+    with open('{}/{}'.format(direc, mac_ip_file), 'r') as fd:
+        for line in fd:
+            if pi_address == line.split(';')[1]:
+                mac = line.split(';')[0]
+                break;
+        if mac:
+            switch_port = findport.find_port(mac, switch_ip, community)
+            if switch_port:
+                with open('{}/remshell.txt'.format(direc), 'w') as f:
+                    f.write(str(pi_address))
+                    f.write(',')
+                    f.write(str(port_on_localhost))
+                power_cycle.power_cycle(switch_port, switch_ip, community)
+            else:
+                print('Switch port not found')
+        else:
+            print('{} not found'.format(pi_address))
 
 def reinstall(host_ip):
     mac = None
