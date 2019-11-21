@@ -6,14 +6,15 @@ from tftp import tftp
 from utility import power_cycle
 from utility import findport
 import os
-import subprocess
 
+# may be able to use netifaces here https://github.com/al45tair/netifaces
 direc = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
 config_file = open('{}/config.txt'.format(direc), 'r')
 data_dir    = config_file.readline().rstrip()
 tftp_port   = int(config_file.readline())
 tcp_port    = int(config_file.readline())
 server_ip   = config_file.readline().rstrip()
+net_inter   = config_file.readline().rstrip()
 subnet_mask = config_file.readline().rstrip()
 hosts_file  = config_file.readline().rstrip()
 switch_ip   = config_file.readline().rstrip()
@@ -23,12 +24,6 @@ ip_lease_time = int(config_file.readline().rstrip())
 config_file.close()
 
 def server():
-    # Populate the local ARP cache using the hosts file
-    with open('{}/{}'.format(direc, hosts_file), 'r') as fd:
-        for line in fd:
-            mac, ip = line.split(';')[:2]
-            subprocess.call(['arp', '-s', ip, mac, 'temp'])
-
     tftp_thread = Thread(
             target=tftp.do_tftpd,
             args=[data_dir, tftp_port, server_ip],
@@ -37,7 +32,7 @@ def server():
 
     dhcp_thread = Thread(
             target=dhcp.do_dhcp,
-            args=[hosts_file, subnet_mask, server_ip, ip_lease_time],
+            args=[hosts_file, subnet_mask, server_ip, ip_lease_time, net_inter],
             name="dhcpd")
     dhcp_thread.start()
 
@@ -51,9 +46,8 @@ def server():
     dhcp_thread.join()
     tcp_thread.join()
 
-# Restarts multiple Raspberry Pi. This function will power_cycle the Pi only
-# if it has a complete entry in the hosts file and it is discoverable on the
-# network switch. The local ARP cache is updated with the IP - MAC mapping.
+# Restarts multiple Raspberry Pi. A Pi will only be power cycled if it has a
+# complete entry in the hosts file and is powered on.
 def restart(host_ips):
     ip_mac_map = {ip: None for ip in host_ips}
     with open('{}/{}'.format(direc, hosts_file), 'r') as fd:
@@ -65,7 +59,6 @@ def restart(host_ips):
         if mac:
             switch_port = findport.find_port(mac, switch_ip, community)
             if switch_port:
-                subprocess.call(['arp', '-s', ip, mac, 'temp'])
                 power_cycle.power_cycle(switch_port, switch_ip, community)
 
 def remshell(pi_address, port_on_localhost):
@@ -101,12 +94,12 @@ def reinstall(host_ip):
         if switch_port:
             with open('{}/reinstall.txt'.format(direc), 'w') as f:
                 f.write(ip)
-            subprocess.call(['arp', '-s', host_ip, mac, 'temp'])
             power_cycle.power_cycle(switch_port, switch_ip, community)
         else:
             print('Switch port not found')
     else:
         print('{} not found'.format(ip))
 
-def powercycle(switch_port):
-    power_cycle.power_cycle(switch_port, switch_ip, community)
+def powercycle(switch_ports):
+    for switch_port in switch_ports:
+        power_cycle.power_cycle(switch_port, switch_ip, community)
