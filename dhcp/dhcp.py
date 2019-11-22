@@ -200,7 +200,8 @@ class Transaction(object):
         offer.dhcp_message_type = 'DHCPOFFER'
         offer.server_identifier = self.server.configuration.ip
         offer.client_identifier = mac
-        pkt = construct_packet(mac, self.server.configuration.ip, ip, offer)
+        offer.ip_address_lease_time = self.configuration.ip_address_lease_time
+        pkt = construct_packet(mac, self.configuration.ip, ip, offer)
         self.server.unicast(pkt)
     
     def received_dhcp_request(self, request):
@@ -222,6 +223,7 @@ class Transaction(object):
         ack.your_ip_address = self.server.get_ip_address(request)
         ack.dhcp_message_type = 'DHCPACK'
         ack.server_identifier = self.server.configuration.ip
+        ack.ip_address_lease_time = self.configuration.ip_address_lease_time
         pkt = construct_packet(mac, self.server.configuration.ip,
                 request.requested_ip_address or request.client_ip_address, ack)
         self.server.unicast(pkt)
