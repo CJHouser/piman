@@ -13,7 +13,7 @@ log_path = ""
 
 def alert(data):
     print_to_file(data)
-    url = config['DEFAULT']['slack']
+    url = config['DEFAULT']['discord']
     headers = {'Content-type': 'application/json'}
     try:
         r = requests.post(
@@ -27,7 +27,7 @@ def alert(data):
 
 
 def pretty_stats(ip, event):
-    return "---- From {} ---- \n Time: {} \n CPU load: {} \n RAM usage: {} \n Disk usage: {} \n # of PIDs: {} \n Temperature: {} Celsius \n".format(
+    return "---- From {} ---- \n Time: {} \n CPU load: {} \n RAM usage: {} \n Disk usage: {} \n # of PIDs: {} \n Temperature: {} F \n".format(
             ip,
             event['time'], 
             event['cpu_percent'],
@@ -45,6 +45,7 @@ def get_status(pi_ip):
 
 
 def check_response(response_dict, pi):
+    alert("testing_alert")
     if response_dict['cpu_percent'] > float(config['DEFAULT']['cpu_threshold']):
         alert("CPU beyond threshold on pi@{}".format(pi))
     if response_dict['memory_percent'] > float(config['DEFAULT']['mem_threshold']):
@@ -53,7 +54,8 @@ def check_response(response_dict, pi):
         alert("Disk Usage beyond threshold on pi@{}".format(pi))
     if response_dict['num_pids'] > int(config['DEFAULT']['pids_threshold']):
         alert("Number of PID's beyond threshold on pi@{}".format(pi))
-# add temparature check
+    if response_dict['temp'] > float(config['DEFAULT']['temperature_threshold']):
+        alert("Temperature beyond threshold on pi@{}".format(pi))
 
 def print_to_file(data):
     with open(log_path, "a") as f:
