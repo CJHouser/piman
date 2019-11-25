@@ -36,17 +36,15 @@ class WriteBootProtocolPacket(object):
     magic_cookie = '99.130.83.99'
 
     parameter_order = []
-    
+
+    # Adds new attributes to the WriteBootProtocolPacket object for
+    # each option that is present in the DHCP server configuration.
+    # These attributes are used when constructing the BOOTP packet.
     def __init__(self, configuration):
-        self.tftp_server_name = configuration.ip
-        self.router = configuration.router
-        for i in range(256):
-            names = ['option_{}'.format(i)]
-            if i < len(options) and hasattr(configuration, options[i][0]):
-                names.append(options[i][0])
-        for name in names:
-            if hasattr(configuration, name):
-                setattr(self, name, getattr(configuration, name))
+        for i in range(len(options)):
+            option_name = options[i][0]
+            if hasattr(configuration, option_name):
+                setattr(self, option_name, getattr(configuration, option_name))
 
     def to_bytes(self):
         result = bytearray(236)
@@ -245,6 +243,7 @@ class DHCPServerConfiguration(object):
         self.host_file = hosts_file
         self.ip_address_lease_time = lease_time
         self.net_inter_name = net_inter
+        self.tftp_server_name = ip
         self.network = network_from_ip_subnet(ip, subnet_mask)
 
     def load(self, file):
@@ -258,7 +257,7 @@ class DHCPServerConfiguration(object):
         for ip in ip_addresses:
             if ip.split('.')[-1] == '1':
                 self.router = ip
-                self.domain_name_server = ip
+                self.domain_name_server = [ip]
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
                 #self.ip_forwarding_enabled = True
