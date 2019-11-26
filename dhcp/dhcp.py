@@ -42,7 +42,7 @@ class WriteBootProtocolPacket(object):
     # These attributes are used when constructing the BOOTP packet.
     def __init__(self, configuration):
         for i in range(256):
-            option_name = 'option_{}'.format()
+            option_name = 'option_{}'.format(i)
             if i < len(options) and hasattr(configuration, options[i][0]):
                 option_name = options[i][0]
             if hasattr(configuration, option_name):
