@@ -260,7 +260,6 @@ class DHCPServerConfiguration(object):
         for ip in ip_addresses:
             if ip.split('.')[-1] == '1':
                 self.router = ip
-                self.domain_name_server.append(ip)
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
                 #self.ip_forwarding_enabled = True
