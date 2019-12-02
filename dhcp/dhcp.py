@@ -239,13 +239,14 @@ class DHCPServerConfiguration(object):
 
     debug = lambda *args, **kw: None
 
-    def __init__(self, ip, subnet_mask, hosts_file, lease_time, net_inter):
+    def __init__(self, ip, subnet_mask, hosts_file, lease_time, net_inter, dns_server):
         self.ip = ip
         self.subnet_mask = subnet_mask
         self.host_file = hosts_file
         self.ip_address_lease_time = lease_time
         self.net_inter_name = net_inter
         self.tftp_server_name = ip
+        self.domain_name_server = [dns_server]
         self.network = network_from_ip_subnet(ip, subnet_mask)
 
     def load(self, file):
@@ -259,7 +260,7 @@ class DHCPServerConfiguration(object):
         for ip in ip_addresses:
             if ip.split('.')[-1] == '1':
                 self.router = ip
-                self.domain_name_server = [ip]
+                self.domain_name_server.append(ip)
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
                 self.broadcast_address = '.'.join(ip.split('.')[:-1] + ['255'])
                 #self.ip_forwarding_enabled = True
@@ -622,9 +623,9 @@ def IP_checksum(data):
 
     return (sum).to_bytes(2, 'big') 
 
-def do_dhcp(hosts_file, subnet_mask, ip, lease_time, net_inter):
+def do_dhcp(hosts_file, subnet_mask, ip, lease_time, net_inter, dns_server):
     configuration = DHCPServerConfiguration(ip, subnet_mask, hosts_file,
-            lease_time, net_inter)
+            lease_time, net_inter, dns_server)
     #configuration.debug = print
     configuration.adjust_if_this_computer_is_a_router()
     server = DHCPServer(configuration)

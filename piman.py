@@ -21,6 +21,7 @@ switch_ip   = config_file.readline().rstrip()
 community   = config_file.readline().rstrip()
 remshell_file = config_file.readline().rstrip()
 ip_lease_time = int(config_file.readline().rstrip())
+dns_server  = config_file.readline().rstrip()
 config_file.close()
 
 def server():
@@ -32,7 +33,7 @@ def server():
 
     dhcp_thread = Thread(
             target=dhcp.do_dhcp,
-            args=[hosts_file, subnet_mask, server_ip, ip_lease_time, net_inter],
+            args=[hosts_file, subnet_mask, server_ip, ip_lease_time, net_inter, dns_server],
             name="dhcpd")
     dhcp_thread.start()
 

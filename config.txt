@@ -9,3 +9,4 @@ hosts.csv
 private@1
 remshell.txt
 1200
+8.8.8.8
