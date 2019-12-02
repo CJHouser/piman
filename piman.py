@@ -85,6 +85,7 @@ def remshell(pi_address, port_on_localhost):
 
 def reinstall(host_ip):
     mac = None
+    ip = ''
     with open('{}/{}'.format(direc, hosts_file), 'r') as fd:
         for line in fd:
             if host_ip == line.split(';')[1]:
