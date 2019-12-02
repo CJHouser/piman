@@ -13,7 +13,7 @@ log_path = ""
 
 def alert(data):
     print_to_file(data)
-    url = config['DEFAULT']['discord']
+    url = config['DEFAULT']['slack']
     headers = {'Content-type': 'application/json'}
     try:
         r = requests.post(
@@ -45,7 +45,6 @@ def get_status(pi_ip):
 
 
 def check_response(response_dict, pi):
-    alert("testing_alert")
     if response_dict['cpu_percent'] > float(config['DEFAULT']['cpu_threshold']):
         alert("CPU beyond threshold on pi@{}".format(pi))
     if response_dict['memory_percent'] > float(config['DEFAULT']['mem_threshold']):
