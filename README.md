@@ -36,6 +36,7 @@ There are a few potholes to watch out for that can cause problems while working 
     <IP address of the switch>
     <SNMP community phrase>
     <IP address lease time in seconds>
+    <DNS Server IPv4 Address>
 ```
 
 # Functionality
