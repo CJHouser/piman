@@ -6,23 +6,24 @@ from tftp import tftp
 from utility import power_cycle
 from utility import findport
 import os
+import yaml
+
 
 # may be able to use netifaces here https://github.com/al45tair/netifaces
 direc = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1])
-config_file = open('{}/config.txt'.format(direc), 'r')
-data_dir    = config_file.readline().rstrip()
-tftp_port   = int(config_file.readline())
-tcp_port    = int(config_file.readline())
-server_ip   = config_file.readline().rstrip()
-net_inter   = config_file.readline().rstrip()
-subnet_mask = config_file.readline().rstrip()
-hosts_file  = config_file.readline().rstrip()
-switch_ip   = config_file.readline().rstrip()
-community   = config_file.readline().rstrip()
-remshell_file = config_file.readline().rstrip()
-ip_lease_time = int(config_file.readline().rstrip())
-dns_server  = config_file.readline().rstrip()
-config_file.close()
+with open(direc + '/.piman.yaml', 'r') as fd:
+    config = yaml.load(fd)
+    community = config['SNMP-community']
+    data_dir = config['boot-directory']
+    dns_server = config['DNS-server']
+    hosts_file = config['hosts-file']
+    ip_lease_time = config['DHCP-lease-time']
+    net_inter = config['network-interface']
+    server_ip = config['server-IPv4']
+    subnet_mask = config['subnet-mask']
+    tcp_port = config['tcp-port']
+    tftp_port = config['tftp-port']
+
 
 def server():
     tftp_thread = Thread(
@@ -47,6 +48,7 @@ def server():
     dhcp_thread.join()
     tcp_thread.join()
 
+
 # Restarts multiple Raspberry Pi. A Pi will only be power cycled if it has a
 # complete entry in the hosts file and is powered on.
 def restart(host_ips):
@@ -62,46 +64,41 @@ def restart(host_ips):
             if switch_port:
                 power_cycle.power_cycle(switch_port, switch_ip, community)
 
-def remshell(pi_address, port_on_localhost):
-    mac = None
-    print("remshell")
-    with open('{}/{}'.format(direc, mac_ip_file), 'r') as fd:
-        for line in fd:
-            if pi_address == line.split(';')[1]:
-                mac = line.split(';')[0]
-                break;
-        if mac:
-            switch_port = findport.find_port(mac, switch_ip, community)
-            if switch_port:
-                with open('{}/remshell.txt'.format(direc), 'w') as f:
-                    f.write(str(pi_address))
-                    f.write(',')
-                    f.write(str(port_on_localhost))
-                power_cycle.power_cycle(switch_port, switch_ip, community)
-            else:
-                print('Switch port not found')
-        else:
-            print('{} not found'.format(pi_address))
 
+# rewrite for multiple reinstall
 def reinstall(host_ip):
-    mac = None
-    ip = ''
-    with open('{}/{}'.format(direc, hosts_file), 'r') as fd:
+    with open(direc + '/' + hosts_file, 'r') as fd:
         for line in fd:
             if host_ip == line.split(';')[1]:
                 mac = line.split(';')[0]
-                break
-    if mac:
-        switch_port = findport.find_port(mac, switch_ip, community)
-        if switch_port:
-            with open('{}/reinstall.txt'.format(direc), 'w') as f:
-                f.write(ip)
-            power_cycle.power_cycle(switch_port, switch_ip, community)
-        else:
-            print('Switch port not found')
-    else:
-        print('{} not found'.format(ip))
+                switch_port = findport.find_port(mac, switch_ip, community)
+                if switch_port:
+                    with open(direc + '/reinstall.txt', 'w') as f:
+                        f.write(host_ip)
+                    power_cycle.power_cycle(switch_port, switch_ip, community)
+                else:
+                    print('Switch port not found')
+            else:
+                print(host_ip + ' not found')
+
 
 def powercycle(switch_ports):
     for switch_port in switch_ports:
         power_cycle.power_cycle(switch_port, switch_ip, community)
+
+
+def remshell(pi_address, port_on_localhost):
+    with open(direc + '/' + hosts_file, 'r') as fd:
+        for line in fd:
+            if pi_address == line.split(';')[1]:
+                mac = line.split(';')[0]
+                switch_port = findport.find_port(mac, switch_ip, community)
+                if switch_port:
+                    with open(direc + '/remshell.txt', 'w') as fd:
+                        pi_addr = piaddress + ',' + str(port_on_localhost)
+                        fd.write(pi_addr)
+                    power_cycle.power_cycle(switch_port, switch_ip, community)
+                else:
+                    print('Switch port not found')
+            else:
+                print(pi_address + ' not found')

@@ -22,23 +22,10 @@ There are a few potholes to watch out for that can cause problems while working 
     
     `<Raspberry Pi MAC Address>;<IP address>;<Machine name>;<Timestamp>`
 
-* __config.txt__
+* __.piman.yaml__
 
-    Contains configuration information to allow piman to be run on any machine without making changes to the code. It MUST follow the following format:
+    Contains configuration information to allow piman to be run on any machine without making changes to the code.
     
-```
-    <Path to boot data>
-    <TFTP port>
-    <TCP port>
-    <IP address of the machine hosting piman>
-    <Subnet mask>
-    <Path to hosts.csv>
-    <IP address of the switch>
-    <SNMP community phrase>
-    <IP address lease time in seconds>
-    <DNS Server IPv4 Address>
-```
-
 # Functionality
 
 * Server

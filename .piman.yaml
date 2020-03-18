@@ -1,0 +1,15 @@
+---
+
+boot-directory: install/boot/ OR install/boot # Path to boot files
+tftp-port: 69
+tcp-port: 3333
+server-IPv4: 172.30.1.1
+network-interface: ens4
+subnet-mask: 255.255.255.0
+hosts-file: hosts.csv
+switch-IPv4: 172.30.1.254
+SNMP-community: private@1 
+DHCP-lease-time: 1200 # Seconds
+DNS-IPv4: 8.8.8.8
+
+...
