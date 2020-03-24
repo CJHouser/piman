@@ -9,11 +9,7 @@ There are a few potholes to watch out for that can cause problems while working 
 
 * __rootfs.tgz__
     
-    TCP needs to send the Raspberry Pi's a file called rootfs.tgz. This file is NOT included in the repo and must be obtained from Ben Reed. It should be placed in install/boot with the rest of the boot data.
-
-* __cmdline.txt__
-
-    This file, located in install/boot, contains a hardcoded IP address that needs to be changed in order for remote boot to succeed. The IP address should be the IP address of the machine that is hosting piman.
+    TCP needs to send the Raspberry Pi's a file called rootfs.tgz. This file is NOT included in the repo. It should be placed in install/boot with the rest of the boot data.
 
 # Configuration
 * __hosts.csv__
