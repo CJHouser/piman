@@ -15,12 +15,13 @@ with open(direc + '/.piman.yaml', 'r') as fd:
     config = yaml.load(fd)
     community = config['SNMP-community']
     data_dir = config['boot-directory']
-    dns_server = config['DNS-server']
+    dns_server = config['DNS-IPv4']
     hosts_file = config['hosts-file']
     ip_lease_time = config['DHCP-lease-time']
     net_inter = config['network-interface']
     server_ip = config['server-IPv4']
     subnet_mask = config['subnet-mask']
+    switch_ip = config['switch-IPv4']
     tcp_port = config['tcp-port']
     tftp_port = config['tftp-port']
 
