@@ -258,6 +258,9 @@ class DHCPServerConfiguration(object):
     def adjust_if_this_computer_is_a_router(self):
         ip_addresses = get_host_ip_addresses()
         for ip in ip_addresses:
+            # Skip the loopback address
+            if ip == '127.0.0.1':
+                continue
             if ip.split('.')[-1] == '1':
                 self.router = ip
                 self.network = '.'.join(ip.split('.')[:-1] + ['0'])
@@ -546,6 +549,7 @@ class DHCPServer(object):
         return sorted_hosts(self.hosts.get(last_used = GREATER(self.time_started)))
 
 # Produces a list of inet addresses associated with the local host.
+# socket.gethostbyname_ex() pulls addresses from /etc/hosts.
 def get_host_ip_addresses():
     return gethostbyname_ex(gethostname())[2]
 

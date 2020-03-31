@@ -2,6 +2,6 @@
 
 mkdir /proc
 mount -t proc /proc /proc
-nc $master 3333 -e /hello_protocol.sh
+nc $master 3333 -e /hello_protocol.sh # BusyBox version of nc has -e
 sleep 5
 exec switch_root /new_root /sbin/init
