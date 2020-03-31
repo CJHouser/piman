@@ -3,13 +3,13 @@
 boot-directory: install/boot/
 tftp-port: 69
 tcp-port: 3333
-server-IPv4: 172.30.1.2
+server-IPv4: 172.30.1.1
 network-interface: enp3s0f1
 subnet-mask: 255.255.255.0
 hosts-file: hosts.csv
 switch-IPv4: 172.30.1.254
 SNMP-community: public
-DHCP-lease-time: 60 # Seconds
+DHCP-lease-time: 600 # Seconds
 DNS-IPv4: 8.8.8.8
 
 ...

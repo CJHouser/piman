@@ -14,7 +14,7 @@ from pysnmp.hlapi import *  # PySNMP library
 # community     :   SNMP community string
 def power_cycle(switch_port, switch_ip, community):
     turn_off(switch_port, switch_ip, community)
-    time.sleep(1)
+    time.sleep(3)
     turn_on(switch_port, switch_ip, community)
 
 

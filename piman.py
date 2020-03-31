@@ -27,10 +27,6 @@ with open(direc + '/.piman.yaml', 'r') as fd:
 
 
 def server():
-    with open(direc + '/install/boot/cmdline.txt', 'w') as fd:
-        fd.truncate(0)
-        fd.write('ip=dhcp root=/dev/initrd master=' + server_ip)
-    
     tftp_thread = Thread(
             target=tftp.do_tftpd,
             args=[data_dir, tftp_port, server_ip],
@@ -72,6 +68,7 @@ def restart(host_ips):
 
 # rewrite for multiple reinstall
 def reinstall(host_ip):
+    host_ip = host_ip[0] # change later. func should take a list rather than string
     with open(direc + '/' + hosts_file, 'r') as fd:
         for line in fd:
             if host_ip == line.split(';')[1]:
@@ -83,8 +80,6 @@ def reinstall(host_ip):
                     power_cycle.power_cycle(switch_port, switch_ip, community)
                 else:
                     print('Switch port not found')
-            else:
-                print(host_ip + ' not found')
 
 
 def powercycle(switch_ports):
